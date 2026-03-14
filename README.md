@@ -18,31 +18,32 @@ The Goldsmith Lab focuses on *Modeling Catalysts and Materials for a Sustainable
 - Redox chemistry for energy storage (flow batteries)
 - Bio-oil conversion to fuels and chemicals
 
-**Funding:** NSF, DOE, Army Research Laboratory, ONR, ACS, Microsoft Climate Research Initiative
-
 **Lab website:** [goldsmithlab.engin.umich.edu](https://goldsmithlab.engin.umich.edu/)
 
 ---
 
-## Live Demo
+## Demo
 
-> Repository is currently private. Enable GitHub Pages after making public.
+**[Launch Online Simulator](https://chenggoj.github.io/goldsmith-lab-simulator/goldsmith-lab-simulator-online.html)**
+
+Runs entirely in the browser. No installation required.
 
 ---
 
 ## Versions
 
-### Online Version (`goldsmith-lab-simulator-online.html`)
+### Online Version
 
-Powered by [OpenRouter](https://openrouter.ai/) free-tier models. Runs entirely in the browser — no local setup needed.
+**[goldsmith-lab-simulator-online.html](https://chenggoj.github.io/goldsmith-lab-simulator/goldsmith-lab-simulator-online.html)**
 
-### Local Version (`goldsmith-lab-simulator.html`)
+Powered by [OpenRouter](https://openrouter.ai/) free-tier models. Walk up to any NPC and press **E** to start a conversation — AI responses stream in real time.
 
-Powered by a local [Ollama](https://ollama.ai/) instance.
+### Local Version
 
-**macOS quick start:**
+`goldsmith-lab-simulator.html` — powered by a local [Ollama](https://ollama.ai/) instance.
+
 ```bash
-# Requires Ollama running with a compatible model
+# macOS: requires Ollama running with a compatible model
 open start.command
 ```
 
@@ -87,47 +88,6 @@ goldsmith-lab-simulator/
 |---|---|---|
 | Local | Ollama (`/api/chat`) | NDJSON streaming |
 | Online | OpenRouter (`/v1/chat/completions`) | SSE streaming |
-
----
-
-## Secure Deployment (GitHub Pages + Vercel Proxy)
-
-To deploy without exposing your API key in the HTML source:
-
-1. Deploy `vercel-proxy/` to Vercel; set `OPENROUTER_API_KEY` as an environment variable
-2. In `goldsmith-lab-simulator-online.html`, replace `OR_ENDPOINT` with your Vercel function URL
-3. Push to GitHub and enable Pages on the `main` branch
-
----
-
-## Current Lab Members (2025)
-
-**Principal Investigator**
-- Bryan R. Goldsmith — Associate Professor
-
-**Postdoctoral Fellows**
-- Yan Ying Tan (2025–)
-- Weichi Yao (2023–)
-- Anthony Pembere (2025–)
-
-**PhD Students**
-- Cameron Gruich (2021–)
-- Ankit Mathanker (2021–)
-- Oluwatosin Ohiro (2021–)
-- Chenggong Jiang (2022–)
-- Dean Sweeney (2023–)
-- Roshini Dantuluri (2023–)
-- Maurycy Krzyzanowski (2023–)
-- Aeva Silverman (2024–)
-- Sila Donmez (2025–)
-- Varun Madhavan (2025–)
-- Maxim Balitskiy (2025–)
-- Diego Cabello (2025–)
-
-**Undergraduate Students**
-- Yifei Liu (2023–)
-- Therresa Sharlene Budihardjo (2024–)
-- Jessica Jia (2025–)
 
 ---
 
