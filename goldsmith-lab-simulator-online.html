@@ -945,7 +945,7 @@
     scene.add(bryan, yanYing, weichi, anthony, cameron, ankit, oluwatosin, chenggong, dean, roshini, maurycy, aeva, sila, varun, maxim, diego, yifei, therresa, jessica);
 
     // ── Player ─────────────────────────────────────────────────────────────────
-    const player = { pos: new THREE.Vector3(0, 1.6, 12), speed: .09, dancing: false };
+    const player = { pos: new THREE.Vector3(0, 1.6, 12), speed: .22, dancing: false };
     const keys = {}; let mouseX = 0, mouseY = 0;
 
     // ── Dialogue ───────────────────────────────────────────────────────────────
@@ -1012,28 +1012,19 @@
         d.onclick = () => ask(q); dOpts.appendChild(d);
       });
     }
-    // ── OpenRouter direct (local test mode) ───────────────────────────────────
-    // TODO before GitHub deploy: replace with Vercel/CF Worker proxy so key
-    // is never in a public repo.
-    const OR_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
-    const OR_KEY   = 'REDACTED'.trim();
+    const OR_ENDPOINT = 'https://goldsmith-lab-simulator-git-main-chenggojs-projects.vercel.app/api/chat';
     const OR_MODEL = 'openrouter/free';
 
     async function callOpenRouter(messages) {
       const res = await fetch(OR_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + OR_KEY,
-          'HTTP-Referer': window.location.href,
-          'X-Title': 'Goldsmith Lab Simulator',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ model: OR_MODEL, messages, stream: true })
       });
       if (!res.ok) {
         const errBody = await res.text().catch(() => '');
-        console.error('[OpenRouter]', res.status, errBody);
-        throw new Error('OpenRouter HTTP ' + res.status + ' — ' + errBody.slice(0, 120));
+        console.error('[OpenRouter proxy]', res.status, errBody);
+        throw new Error('Proxy error: OpenRouter HTTP ' + res.status + ' — ' + errBody.slice(0, 120));
       }
       return res.body;
     }
@@ -1077,19 +1068,30 @@
           { role: 'user', content: q }
         ];
         const stream = await callOpenRouter(messages);
-        dCont.innerHTML = dCont.innerHTML.replace('<span class="spin"></span>', '');
+        const spinEl = dCont.querySelector('.spin');
+        const ansP = spinEl ? spinEl.closest('p') : (() => { const p = document.createElement('p'); dCont.appendChild(p); return p; })();
+        ansP.innerHTML = `<strong>${curChar.userData.name}:</strong> `;
+        const ansSpan = document.createElement('span');
+        ansP.appendChild(ansSpan);
+        let visibleText = '';
+        let inThink = false;
+        let thinkBuf = '';
         await readSSEStream(stream, token => {
           reply += token;
-          const clean = reply.replace(/<think>[\s\S]*?<\/think>/g, '');
-          const lastP = dCont.lastElementChild;
-          if (lastP && lastP.innerHTML.includes(curChar.userData.name)) {
-            lastP.innerHTML = `<strong>${curChar.userData.name}:</strong> ${clean.replace(/</g, '&lt;').replace(/>/g, '&gt;')}`;
-          } else {
-            dCont.innerHTML += `<p><strong>${curChar.userData.name}:</strong> ${clean.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</p>`;
+          let chunk = token;
+          if (inThink) {
+            thinkBuf += chunk;
+            const end = thinkBuf.indexOf('</think>');
+            if (end !== -1) { inThink = false; chunk = thinkBuf.slice(end + 8); thinkBuf = ''; }
+            else { chunk = ''; }
           }
-          dCont.scrollTop = dCont.scrollHeight;
+          if (!inThink && chunk) {
+            const start = chunk.indexOf('<think>');
+            if (start !== -1) { inThink = true; thinkBuf = chunk.slice(start + 7); chunk = chunk.slice(0, start); }
+          }
+          if (chunk) { visibleText += chunk; ansSpan.textContent = visibleText; dCont.scrollTop = dCont.scrollHeight; }
         });
-        reply = reply.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        reply = visibleText.trim();
         if (!reply) reply = fallback(curChar);
       } catch (e) {
         console.error('OpenRouter proxy error:', e);
