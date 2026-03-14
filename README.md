@@ -117,3 +117,9 @@ goldsmith-lab-simulator/
 - [Three.js](https://threejs.org/) — 3D rendering
 - [OpenRouter](https://openrouter.ai/) — LLM routing (online version)
 - [Ollama](https://ollama.ai/) — local LLM inference (local version)
+
+---
+
+## Disclaimer
+
+This simulator is a fan-made project created purely for entertainment. While NPC names and roles are based on publicly available information from the Goldsmith Lab website, all portrayed personalities, dialogue, lab culture, interpersonal dynamics, and AI-generated conversations are entirely fictional and do not represent the views, behavior, or character of any real individual. Nothing in this simulator should be interpreted as factual commentary on any person or the lab.
