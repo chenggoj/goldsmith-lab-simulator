@@ -1,5 +1,7 @@
 # Goldsmith Lab Simulator
 
+> Meet everyone in The Office of the Goldsmith lab.
+
 An interactive 3D simulation of the [Goldsmith Research Group](https://goldsmithlab.engin.umich.edu/) at the University of Michigan Department of Chemical Engineering. Walk through the lab, interact with NPC lab members, and ask them questions — powered by an AI language model.
 
 ---
