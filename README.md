@@ -24,6 +24,25 @@ The Goldsmith Lab focuses on *Modeling Catalysts and Materials for a Sustainable
 
 ---
 
+## Highlighted Features
+
+**Real lab members, faithfully modeled**
+Every NPC in the simulator is based on a real member of the Goldsmith Research Group. Names, roles, and affiliations are sourced directly from the lab's public website. Each character is given a distinct personality and a signature behavioral quirk that shapes how they respond in conversation.
+
+**LLM-driven player interactions**
+Walk up to any NPC and press `E` to open a conversation. Every response is generated in real time by a large language model, streamed token by token directly into the chat panel. The model is prompted with the NPC's identity, role, personality, and shared lab context — so responses are technically grounded and stay in character.
+
+**Autonomous NPC-to-NPC conversations**
+NPCs spontaneously initiate AI-generated conversations with each other, entirely unprompted. Dialogue topics are drawn from a pool of 158 lab-specific scenarios — covering everything from VASP convergence failures and volcano plot debates to group meeting anxieties and malfunctioning coffee machines. No two conversations are the same.
+
+**NPC self-talk and ambient mumbling**
+NPCs occasionally break into audible self-talk, muttering from a library of 38 lines that reflect the everyday frustrations and obsessions of computational chemistry research — converging SCF loops, tuning ENCUT, chasing negative formation energies, and wondering if something is a bug or a feature.
+
+**Reactive environment**
+Successful AI interactions trigger floating text bursts in the 3D scene — terms like `SCF!`, `dG<0!`, `p<0.05`, and `NaN?` — adding a layer of ambient technical flavor to the lab atmosphere.
+
+---
+
 ## Demo
 
 **[Launch Online Simulator](https://chenggoj.github.io/goldsmith-lab-simulator/goldsmith-lab-simulator-online.html)**
