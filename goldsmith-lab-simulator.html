@@ -1,0 +1,1984 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Goldsmith Lab Simulator - UMich ChemE</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #000;
+    }
+
+    #ui {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      color: #fff;
+      background: rgba(0, 39, 76, 0.88);
+      padding: 14px 18px;
+      border-radius: 12px;
+      backdrop-filter: blur(10px);
+      max-width: 265px;
+      border: 1px solid #ffcb0544;
+    }
+
+    #ui h2 {
+      margin: 0 0 2px;
+      font-size: 15px;
+      color: #ffcb05;
+    }
+
+    #ui p {
+      margin: 3px 0;
+      font-size: 12px;
+      opacity: .85;
+    }
+
+    #ui .tip {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #ffcb05;
+    }
+
+    #dbox {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, .97);
+      color: #222;
+      padding: 20px 22px;
+      border-radius: 16px;
+      max-width: 640px;
+      width: 92%;
+      display: none;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, .35);
+      border-top: 4px solid #00274c;
+    }
+
+    #dbox h3 {
+      margin: 0 0 8px;
+      color: #00274c;
+      font-size: 15px;
+    }
+
+    #dcont {
+      margin: 8px 0;
+      line-height: 1.6;
+      max-height: 175px;
+      overflow-y: auto;
+      font-size: 13px;
+    }
+
+    .opt {
+      background: #f4f4f4;
+      border: 2px solid #00274c;
+      padding: 10px 14px;
+      margin: 6px 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 12.5px;
+      transition: all .2s;
+    }
+
+    .opt:hover {
+      background: #00274c;
+      color: #ffcb05;
+      transform: translateX(4px);
+    }
+
+    #cqw {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid #ddd;
+    }
+
+    #cqw p {
+      margin: 0 0 6px;
+      font-size: 11px;
+      text-align: center;
+      color: #666;
+    }
+
+    #cqi {
+      width: 100%;
+      padding: 9px 12px;
+      border: 2px solid #00274c;
+      border-radius: 8px;
+      font-size: 13px;
+      font-family: inherit;
+    }
+
+    #cqb {
+      background: #00274c;
+      color: #ffcb05;
+      border: none;
+      padding: 9px 18px;
+      border-radius: 8px;
+      margin-top: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all .2s;
+    }
+
+    #cqb:hover {
+      background: #ffcb05;
+      color: #00274c;
+    }
+
+    #cqb:disabled {
+      background: #999;
+      color: #fff;
+      cursor: not-allowed;
+    }
+
+    .spin {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid #ccc;
+      border-top-color: #00274c;
+      border-radius: 50%;
+      animation: sp .8s linear infinite;
+    }
+
+    @keyframes sp {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    #ipr {
+      position: absolute;
+      bottom: 170px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 39, 76, .88);
+      color: #ffcb05;
+      padding: 8px 20px;
+      border-radius: 20px;
+      display: none;
+      font-size: 13px;
+      font-weight: 600;
+      pointer-events: none;
+    }
+
+    .ft {
+      position: absolute;
+      font-size: 20px;
+      font-weight: bold;
+      pointer-events: none;
+      animation: fu 2s ease-out forwards;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, .7);
+    }
+
+    @keyframes fu {
+      0% {
+        opacity: 1;
+        transform: translateY(0)
+      }
+
+      100% {
+        opacity: 0;
+        transform: translateY(-90px)
+      }
+    }
+
+    /* ── NPC Speech Bubbles ── */
+    .speech-bubble {
+      position: absolute;
+      background: rgba(0, 39, 76, 0.92);
+      color: #fff;
+      padding: 8px 14px;
+      border-radius: 12px;
+      font-size: 12px;
+      max-width: 260px;
+      line-height: 1.4;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 203, 5, 0.3);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+      animation: bubbleIn 0.3s ease-out;
+      z-index: 50;
+      transform: translateX(-50%);
+    }
+
+    .speech-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 8px solid rgba(0, 39, 76, 0.92);
+    }
+
+    .speech-bubble .sb-name {
+      color: #ffcb05;
+      font-weight: 700;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .speech-bubble .sb-text {
+      opacity: 0.95;
+    }
+
+    @keyframes bubbleIn {
+      0% { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.8); }
+      100% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+
+    @keyframes bubbleOut {
+      0% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+      100% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.8); }
+    }
+
+    /* Self-talk / mumble bubble — smaller, more translucent */
+    .mumble-bubble {
+      position: absolute;
+      background: rgba(40, 40, 60, 0.75);
+      color: rgba(255,255,255,0.8);
+      padding: 5px 10px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-style: italic;
+      max-width: 200px;
+      pointer-events: none;
+      animation: bubbleIn 0.3s ease-out;
+      z-index: 49;
+      transform: translateX(-50%);
+    }
+
+    .mumble-bubble::after {
+      content: '';
+      position: absolute;
+      bottom: -6px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-left: 6px solid transparent;
+      border-right: 6px solid transparent;
+      border-top: 6px solid rgba(40, 40, 60, 0.75);
+    }
+  </style>
+</head>
+
+<body>
+  <div id="ui">
+    <h2>Goldsmith Lab · UMich ChemE</h2>
+    <p>Computational Catalysis &amp; Data Science</p>
+    <p style="margin-top:8px">WASD — move</p>
+    <p>&larr; &rarr; / mouse — look</p>
+    <p>E — talk to labmates</p>
+    <p>SPACE — celebrate convergence</p>
+    <p>ESC — close dialog</p>
+    <p class="tip">&gt; Type your own questions!</p>
+  </div>
+  <div id="dbox">
+    <h3 id="dname">Name</h3>
+    <div id="dcont"></div>
+    <div id="dopts"></div>
+    <div id="cqw">
+      <p>--- Or interrogate them yourself ---</p>
+      <input id="cqi" type="text" maxlength="200"
+        placeholder="e.g. 'Is your DFT converged?' or 'What is the limiting potential of your mood?'">
+      <button id="cqb">Ask</button>
+    </div>
+  </div>
+  <div id="ipr"></div>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script>
+    // ── Scene ──────────────────────────────────────────────────────────────────
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xeef0f5);
+    scene.fog = new THREE.Fog(0xeef0f5, 14, 62);
+    const camera = new THREE.PerspectiveCamera(72, innerWidth / innerHeight, 0.1, 200);
+    camera.position.set(0, 1.6, 12);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(innerWidth, innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    THREE.ColorManagement.enabled = false;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    document.body.appendChild(renderer.domElement);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+    const sun = new THREE.DirectionalLight(0xfff8e7, 0.9);
+    sun.position.set(8, 18, 10); sun.castShadow = true;
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -38;
+    sun.shadow.camera.right = sun.shadow.camera.top = 38;
+    sun.shadow.mapSize.width = sun.shadow.mapSize.height = 2048;
+    scene.add(sun);
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+    const M = (geo, mat, x = 0, y = 0, z = 0, rx = 0, ry = 0) => {
+      const m = new THREE.Mesh(geo, mat);
+      m.position.set(x, y, z); m.rotation.x = rx; m.rotation.y = ry;
+      m.castShadow = m.receiveShadow = true; return m;
+    };
+    const _matCache = {};
+    const C = h => _matCache[h] || (_matCache[h] = new THREE.MeshStandardMaterial({ color: h }));
+    const mat = {
+      floor: C(0xd8dce5), tile: C(0xf8f8f8), tile2: C(0xe8ecf3),
+      wall: C(0xfafcfe),
+      desk: new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: .3, metalness: .1 }),
+      metal: new THREE.MeshStandardMaterial({ color: 0x8898aa, roughness: .3, metalness: .8 }),
+      screen: new THREE.MeshStandardMaterial({ color: 0x0a1628, roughness: .1, metalness: .3 }),
+      navy: C(0x00274c), maize: C(0xffcb05), white: C(0xffffff), skin: C(0xffdbac),
+      wood: new THREE.MeshStandardMaterial({ color: 0xb07828, roughness: .7 }),
+      conf: C(0x2a4a6a),
+      srv: new THREE.MeshStandardMaterial({ color: 0x2a3040, roughness: .3, metalness: .6 }),
+    };
+
+    // ── Floor ──────────────────────────────────────────────────────────────────
+    scene.add(M(new THREE.PlaneGeometry(56, 56), mat.floor, 0, 0, 0, -Math.PI / 2));
+    (function () {
+      const fc = document.createElement('canvas'); fc.width = fc.height = 128;
+      const ctx = fc.getContext('2d');
+      ctx.fillStyle = '#f8f8f8'; ctx.fillRect(0, 0, 64, 64); ctx.fillRect(64, 64, 64, 64);
+      ctx.fillStyle = '#e8ecf3'; ctx.fillRect(64, 0, 64, 64); ctx.fillRect(0, 64, 64, 64);
+      const floorTex = new THREE.CanvasTexture(fc);
+      floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+      floorTex.repeat.set(13, 13);
+      scene.add(M(new THREE.PlaneGeometry(52, 52),
+        new THREE.MeshStandardMaterial({ map: floorTex, roughness: 0.85 }),
+        0, .005, 0, -Math.PI / 2));
+    })();
+
+    // ── Walls & windows ────────────────────────────────────────────────────────
+    [[0, 5, -25, 56, 10, 0], [0, 5, 25, 56, 10, Math.PI], [-25, 5, 0, 56, 10, Math.PI / 2], [25, 5, 0, 56, 10, -Math.PI / 2]].forEach(([x, y, z, w, h, ry]) =>
+      scene.add(M(new THREE.BoxGeometry(w, h, .15), mat.wall, x, y, z, 0, ry)));
+    const winMat = new THREE.MeshStandardMaterial({ color: 0x88ccff, transparent: true, opacity: .25, roughness: .05 });
+    [-18, -8, 2, 12].forEach(x => scene.add(M(new THREE.BoxGeometry(4, 2.5, .08), winMat, x, 5.5, -24.9)));
+
+    // ── Michigan M ──────────────────────────────────────────────────────────────
+    [-1.2, -.4, .4, 1.2].forEach(x => scene.add(M(new THREE.BoxGeometry(.32, 2.2, .07), mat.maize, x, 5.5, -24.86)));
+    const dl = M(new THREE.BoxGeometry(.32, 1.4, .07), mat.maize, -.72, 4.5, -24.86); dl.rotation.z = .44; scene.add(dl);
+    const dr = M(new THREE.BoxGeometry(.32, 1.4, .07), mat.maize, .72, 4.5, -24.86); dr.rotation.z = -.44; scene.add(dr);
+
+    // ── Whiteboard ─────────────────────────────────────────────────────────────
+    scene.add(M(new THREE.BoxGeometry(7, 3, .07), mat.white, 0, 5, -24.82));
+    (function () {
+      const wc = document.createElement('canvas'); wc.width = 700; wc.height = 300;
+      const wx = wc.getContext('2d');
+      wx.fillStyle = '#fff'; wx.fillRect(0, 0, 700, 300);
+      wx.fillStyle = '#00274c'; wx.font = 'bold 20px monospace';
+      wx.fillText('dG < 0: Nature agrees.     dG > 0: Check your functional.', 14, 36);
+      wx.fillStyle = '#1a6a1a'; wx.font = 'italic 17px monospace';
+      wx.fillText('"It\'s converged." -- last words of many VASP jobs', 14, 70);
+      wx.fillStyle = '#aa2222'; wx.font = 'bold 16px sans-serif';
+      wx.fillText('[!] No error bars = no publication.  (Goldsmith\'s First Law)', 14, 102);
+      wx.fillStyle = '#333'; wx.font = '15px monospace';
+      wx.fillText('DFT = Daring Fictional Thermodynamics  (use PBE+U and pray)', 14, 132);
+      wx.fillStyle = '#5a2a8a'; wx.font = '15px monospace';
+      wx.fillText('Volcano peak: where ALL theorists claim their catalyst lives.', 14, 162);
+      wx.fillStyle = '#333'; wx.font = '14px sans-serif';
+      wx.fillText('If DFT != experiment: blame DFT, then experiment, then yourself.', 14, 190);
+      wx.fillStyle = '#555'; wx.font = '14px sans-serif';
+      wx.fillText('Group mtg Fri 2pm -- volcano plots MANDATORY. No exceptions.', 14, 218);
+      wx.fillStyle = '#007070'; wx.font = '13px sans-serif';
+      wx.fillText('More k-points. Always more k-points.  -- Sun Tzu, probably', 14, 246);
+      wx.fillStyle = '#888'; wx.font = '12px sans-serif';
+      wx.fillText('Coffee machine alive (for now). Cameron added error bars to the beans.', 14, 275);
+      scene.add(M(new THREE.PlaneGeometry(6.9, 2.9),
+        new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(wc) }), 0, 5, -24.75));
+    })();
+
+    // ── Workstations ───────────────────────────────────────────────────────────
+    (function () {
+      const wsPos = [
+        [-18, -20], [-9, -20], [0, -20], [9, -20], [18, -20],
+        [-18, -13], [-9, -13], [9, -13], [18, -13],
+        [-18, -6], [18, -6], [-18, 2], [18, 2],
+        [-18, 10], [18, 10], [-9, 17], [9, 17]
+      ];
+      const n = wsPos.length;
+      const dummy = new THREE.Object3D();
+      dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1);
+      const IM = (geo, m, count) => {
+        const im = new THREE.InstancedMesh(geo, m, count);
+        im.castShadow = im.receiveShadow = true; return im;
+      };
+      const imDesk      = IM(new THREE.BoxGeometry(2, .07, 1), mat.desk, n);
+      const imLeg       = IM(new THREE.BoxGeometry(.055, .8, .055), mat.metal, n * 4);
+      const imMonBase   = IM(new THREE.CylinderGeometry(.07, .07, .04, 8), mat.metal, n * 2);
+      const imMonPole   = IM(new THREE.BoxGeometry(.03, .2, .03), mat.metal, n * 2);
+      const imScreen    = IM(new THREE.BoxGeometry(.62, .38, .03), mat.screen, n * 2);
+      const imKbd       = IM(new THREE.BoxGeometry(.43, .02, .15), mat.metal, n);
+      const towerMat    = C(0x1a2a3a);
+      const imTowerBody = IM(new THREE.BoxGeometry(.44, .05, .44), towerMat, n);
+      const imTowerFront= IM(new THREE.BoxGeometry(.44, .48, .05), towerMat, n);
+      const cupMask = wsPos.map(() => Math.random() > .3);
+      const nCups = cupMask.filter(Boolean).length;
+      const imCup = nCups ? IM(new THREE.CylinderGeometry(.055, .055, .1, 8), mat.maize, nCups) : null;
+      const legOff = [[-0.94, .4, -.44], [0.94, .4, -.44], [-0.94, .4, .44], [0.94, .4, .44]];
+      let legI = 0, monI = 0, cupI = 0;
+      wsPos.forEach(([wx, wz], i) => {
+        dummy.position.set(wx, .8, wz); dummy.updateMatrix(); imDesk.setMatrixAt(i, dummy.matrix);
+        legOff.forEach(([lx, ly, lz]) => {
+          dummy.position.set(wx + lx, ly, wz + lz); dummy.updateMatrix(); imLeg.setMatrixAt(legI++, dummy.matrix);
+        });
+        [-.48, .48].forEach(mx => {
+          dummy.position.set(wx + mx, .84, wz); dummy.updateMatrix(); imMonBase.setMatrixAt(monI, dummy.matrix);
+          dummy.position.set(wx + mx, .96, wz); dummy.updateMatrix(); imMonPole.setMatrixAt(monI, dummy.matrix);
+          dummy.position.set(wx + mx, 1.17, wz); dummy.updateMatrix(); imScreen.setMatrixAt(monI++, dummy.matrix);
+        });
+        dummy.position.set(wx, .82, wz + .25); dummy.updateMatrix(); imKbd.setMatrixAt(i, dummy.matrix);
+        dummy.position.set(wx, .5, wz + .7); dummy.updateMatrix(); imTowerBody.setMatrixAt(i, dummy.matrix);
+        dummy.position.set(wx, .76, wz + .92); dummy.updateMatrix(); imTowerFront.setMatrixAt(i, dummy.matrix);
+        if (cupMask[i] && imCup) { dummy.position.set(wx + .82, .85, wz + .28); dummy.updateMatrix(); imCup.setMatrixAt(cupI++, dummy.matrix); }
+      });
+      [imDesk, imLeg, imMonBase, imMonPole, imScreen, imKbd, imTowerBody, imTowerFront].forEach(im => {
+        im.instanceMatrix.needsUpdate = true; scene.add(im);
+      });
+      if (imCup) { imCup.instanceMatrix.needsUpdate = true; scene.add(imCup); }
+    })();
+
+    // ── Conference table ────────────────────────────────────────────────────────
+    (function () {
+      scene.add(M(new THREE.BoxGeometry(6, .1, 2.5), mat.conf, 0, .75, 6));
+      const dummy = new THREE.Object3D();
+      dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1);
+      const chairMat = C(0x3a4a5a);
+      const imSeat = new THREE.InstancedMesh(new THREE.BoxGeometry(.43, .05, .43), chairMat, 10);
+      const imBack = new THREE.InstancedMesh(new THREE.BoxGeometry(.43, .44, .05), chairMat, 10);
+      imSeat.castShadow = imBack.castShadow = true;
+      let ci = 0;
+      [.55, -.55].forEach(z => {
+        [-2.1, -1.05, 0, 1.05, 2.1].forEach(cx => {
+          dummy.position.set(cx, .37, 6 + z); dummy.updateMatrix(); imSeat.setMatrixAt(ci, dummy.matrix);
+          dummy.position.set(cx, .7, 6 + z + (z > 0 ? .24 : -.24)); dummy.updateMatrix(); imBack.setMatrixAt(ci++, dummy.matrix);
+        });
+      });
+      imSeat.instanceMatrix.needsUpdate = true; imBack.instanceMatrix.needsUpdate = true;
+      scene.add(imSeat, imBack);
+    })();
+
+    // ── Server racks ───────────────────────────────────────────────────────────
+    const blinkLights = [];
+    [21, 22.6].forEach((x, i) => {
+      const sg = new THREE.Group(); sg.position.set(x, 0, -16 + i * 5);
+      sg.add(M(new THREE.BoxGeometry(1.2, 2.2, .8), mat.srv, 0, 1.1, 0));
+      for (let r = 0; r < 8; r++) sg.add(M(new THREE.BoxGeometry(1, .065, .68), mat.navy, 0, .3 + r * .24, .01));
+      for (let b = 0; b < 5; b++) {
+        const bl = M(new THREE.SphereGeometry(.033),
+          new THREE.MeshStandardMaterial({ color: 0x00ff88, emissive: 0x00ff88, emissiveIntensity: 1 }),
+          -.28 + b * .14, 1.2, .41);
+        blinkLights.push(bl); sg.add(bl);
+      }
+      scene.add(sg);
+    });
+
+    // ── Bookshelves ─────────────────────────────────────────────────────────────
+    [-16, -5].forEach(z => {
+      const bg = new THREE.Group(); bg.position.set(-24.6, 0, z);
+      bg.add(M(new THREE.BoxGeometry(.28, 2.4, 3), new THREE.MeshStandardMaterial({ color: 0xb07828, roughness: .7 }), 0, 1.2, 0));
+      for (let s = 0; s < 4; s++) bg.add(M(new THREE.BoxGeometry(.22, .05, 2.75), mat.metal, 0, .5 + s * .58, 0));
+      [0x8b0000, 0x00274c, 0x1a6a1a, 0x4a2a8a, 0xcc6600, 0x2a4a6a, 0x6a1a1a, 0x2a6a4a].forEach((c, b) =>
+        bg.add(M(new THREE.BoxGeometry(.2, .33, .28), C(c), 0, .65 + Math.floor(b / 4) * .58, -1.15 + b * .3)));
+      scene.add(bg);
+    });
+
+    // ── Plants & coffee ─────────────────────────────────────────────────────────
+    (function () {
+      const plantPos = [[-22, 22], [22, 22], [0, 23], [-22, -23], [22, -23]];
+      const dummy = new THREE.Object3D();
+      dummy.rotation.set(0, 0, 0); dummy.scale.setScalar(1);
+      const imPot  = new THREE.InstancedMesh(new THREE.CylinderGeometry(.2, .17, .3, 6), C(0x7a4010), 5);
+      const imLeaf = new THREE.InstancedMesh(new THREE.SphereGeometry(.42, 6), C(0x228830), 5);
+      imPot.castShadow = imPot.receiveShadow = true;
+      imLeaf.castShadow = imLeaf.receiveShadow = true;
+      plantPos.forEach(([x, z], i) => {
+        dummy.position.set(x, .15, z); dummy.updateMatrix(); imPot.setMatrixAt(i, dummy.matrix);
+        dummy.position.set(x, .68, z); dummy.updateMatrix(); imLeaf.setMatrixAt(i, dummy.matrix);
+      });
+      imPot.instanceMatrix.needsUpdate = true; imLeaf.instanceMatrix.needsUpdate = true;
+      scene.add(imPot, imLeaf);
+    })();
+    const cst = new THREE.Group(); cst.position.set(21.5, 0, 12);
+    cst.add(M(new THREE.BoxGeometry(1.6, .72, .85), mat.wood, 0, .36, 0));
+    cst.add(M(new THREE.BoxGeometry(.36, .42, .28), mat.metal, 0, .78, 0));
+    cst.add(M(new THREE.CylinderGeometry(.055, .055, .1, 8), mat.maize, .48, .76, .18));
+    scene.add(cst);
+
+    // ── Wall Posters ───────────────────────────────────────────────────────────
+    (function () {
+      const POSTER_W = 3.4, POSTER_H = 2.4;
+      const CW = 1024, CH = 720;
+
+      function addPoster(drawFn, x, y, z, ry) {
+        const pc = document.createElement('canvas'); pc.width = CW; pc.height = CH;
+        drawFn(pc.getContext('2d'), CW, CH);
+        // MeshBasicMaterial: no lighting dependency, canvas texture always fully visible
+        const pMat = new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(pc), side: THREE.DoubleSide });
+        const frameMat = new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: .7 });
+        // Offset poster along its outward normal to render in front of frame box
+        // Normal after rotation ry: (-sin(ry), 0, cos(ry))
+        const fwd = 0.035;
+        const dx = Math.sin(ry) * fwd;
+        const dz = Math.cos(ry) * fwd;
+        const frame = M(new THREE.BoxGeometry(POSTER_W + .14, POSTER_H + .14, .04), frameMat, x, y, z, 0, ry);
+        const poster = M(new THREE.PlaneGeometry(POSTER_W, POSTER_H), pMat, x + dx, y, z + dz, 0, ry);
+        scene.add(frame); scene.add(poster);
+      }
+
+      function drawHeader(ctx, w, title, subtitle, bgColor, textColor) {
+        ctx.fillStyle = bgColor || '#00274c';
+        ctx.fillRect(0, 0, w, 118);
+        ctx.fillStyle = textColor || '#ffcb05';
+        ctx.font = 'bold 42px Arial'; ctx.textAlign = 'center';
+        ctx.fillText(title, w / 2, 66);
+        if (subtitle) {
+          ctx.fillStyle = 'rgba(255,255,255,0.75)'; ctx.font = '22px Arial';
+          ctx.fillText(subtitle, w / 2, 100);
+        }
+      }
+
+      // Poster 1: Volcano Plot (left wall z=-14)
+      function posterVolcano(ctx, w, h) {
+        ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'VOLCANO PLOT 101', 'Where every theorist says they are: the peak');
+        const px = 110, py = 150, pw = w - 160, ph = h - 250;
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + ph); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px, py + ph); ctx.lineTo(px + pw, py + ph); ctx.stroke();
+        // Volcano curve
+        ctx.strokeStyle = '#00274c'; ctx.lineWidth = 4; ctx.beginPath();
+        for (let i = 0; i <= 120; i++) {
+          const t = i / 120;
+          const xp = px + t * pw;
+          const yp = py + ph - ph * 0.86 * Math.exp(-Math.pow((t - 0.48) * 3.8, 2));
+          i === 0 ? ctx.moveTo(xp, yp) : ctx.lineTo(xp, yp);
+        }
+        ctx.stroke();
+        // Axis labels
+        ctx.fillStyle = '#333'; ctx.font = '22px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('adsorption energy (eV)', px + pw / 2, py + ph + 55);
+        ctx.save(); ctx.translate(32, py + ph / 2); ctx.rotate(-Math.PI / 2);
+        ctx.fillText('log(rate)', 0, 0); ctx.restore();
+        // Too strong / weak
+        ctx.font = '20px Arial'; ctx.fillStyle = '#c0392b'; ctx.textAlign = 'left';
+        ctx.fillText('too strong', px + 6, py + ph - 24);
+        ctx.textAlign = 'right'; ctx.fillText('too weak', px + pw - 6, py + ph - 24);
+        // Peak (gold)
+        const peakX = px + pw * 0.48;
+        const peakY = py + ph - ph * 0.86;
+        ctx.fillStyle = '#ffcb05'; ctx.beginPath(); ctx.arc(peakX, peakY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#333'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('claimed location', peakX, peakY - 22);
+        // Your catalyst (red, on slope)
+        const yourT = 0.22;
+        const yourX = px + yourT * pw;
+        const yourY = py + ph - ph * 0.86 * Math.exp(-Math.pow((yourT - 0.48) * 3.8, 2));
+        ctx.fillStyle = '#e74c3c'; ctx.beginPath(); ctx.arc(yourX, yourY, 12, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 17px Arial'; ctx.textAlign = 'left';
+        ctx.fillText('actual location', yourX + 16, yourY + 5);
+        // Caption
+        ctx.fillStyle = '#666'; ctx.font = 'italic 20px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('Sabatier, 1911. Computational chemists, perpetually.', w / 2, h - 28);
+      }
+
+      // Poster 2: UQ Survival Guide (left wall z=2)
+      function posterUQ(ctx, w, h) {
+        ctx.fillStyle = '#00274c'; ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = '#ffcb05'; ctx.font = 'bold 40px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('UQ SURVIVAL GUIDE', w / 2, 68);
+        ctx.fillStyle = 'rgba(255,203,5,0.3)'; ctx.fillRect(30, 90, w - 60, 3);
+        const rules = [
+          ['1.', 'No error bars = not science. (minimum requirement)'],
+          ['2.', 'Error bars suspiciously small = reviewers will notice.'],
+          ['3.', 'Error bars larger than signal = publishable trend.'],
+          ['4.', 'Quantify uncertainty. Then quantify the uncertainty'],
+          ['  ', '  on your uncertainty. (Cameron\'s corollary)'],
+          ['5.', '"It looks right" is not a confidence interval.'],
+          ['6.', 'Add error bars first. Name the figure second.'],
+          ['7.', 'Prof. Goldsmith will ask for more. Always more.'],
+        ];
+        ctx.textAlign = 'left';
+        rules.forEach(([num, text], i) => {
+          const y = 150 + i * 66;
+          ctx.fillStyle = '#ffcb05'; ctx.font = 'bold 24px monospace'; ctx.fillText(num, 40, y);
+          ctx.fillStyle = '#dde6ff'; ctx.font = '22px Arial'; ctx.fillText(text, 90, y);
+        });
+        ctx.fillStyle = 'rgba(255,203,5,0.18)'; ctx.fillRect(30, h - 60, w - 60, 2);
+        ctx.fillStyle = '#aab8cc'; ctx.font = 'italic 20px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('Goldsmith Lab, University of Michigan ChemE', w / 2, h - 28);
+      }
+
+      // Poster 3: MLIP parity plot (left wall z=16)
+      function posterMLIP(ctx, w, h) {
+        ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'MLIP vs DFT', 'R\u00b2 = 0.9997 ... until you extrapolate');
+        const px = 120, py = 150, pw = w - 180, ph = h - 250;
+        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+        // Grid
+        for (let g = 0; g <= 4; g++) {
+          const gx = px + g * pw / 4; const gy = py + g * ph / 4;
+          ctx.beginPath(); ctx.moveTo(gx, py); ctx.lineTo(gx, py + ph); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(px, gy); ctx.lineTo(px + pw, gy); ctx.stroke();
+        }
+        // Axes
+        ctx.strokeStyle = '#333'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(px, py); ctx.lineTo(px, py + ph); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(px, py + ph); ctx.lineTo(px + pw, py + ph); ctx.stroke();
+        // Parity line
+        ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3; ctx.setLineDash([8, 5]);
+        ctx.beginPath(); ctx.moveTo(px, py + ph); ctx.lineTo(px + pw, py); ctx.stroke();
+        ctx.setLineDash([]);
+        // Data points (near parity with slight scatter)
+        const rng = (s) => { let x = 0; for (let i = 0; i < 3; i++) x += Math.random() - 0.5; return x * s; };
+        ctx.fillStyle = '#00274c';
+        for (let i = 0; i < 55; i++) {
+          const t = 0.05 + Math.random() * 0.82;
+          const noise = rng(0.025);
+          const xp = px + t * pw; const yp = py + ph - (t + noise) * ph;
+          if (yp > py && yp < py + ph) {
+            ctx.beginPath(); ctx.arc(xp, Math.max(py, Math.min(py + ph, yp)), 6, 0, Math.PI * 2); ctx.fill();
+          }
+        }
+        // OOD point (red, far out)
+        ctx.fillStyle = '#e74c3c'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'left';
+        ctx.beginPath(); ctx.arc(px + pw * 0.92, py + ph * 0.1, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillText('OOD point', px + pw * 0.92 + 12, py + ph * 0.1 + 6);
+        // Axis labels
+        ctx.fillStyle = '#333'; ctx.font = '22px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('DFT energy (eV)', px + pw / 2, py + ph + 55);
+        ctx.save(); ctx.translate(32, py + ph / 2); ctx.rotate(-Math.PI / 2);
+        ctx.fillText('MLIP energy (eV)', 0, 0); ctx.restore();
+        // Caption
+        ctx.fillStyle = '#666'; ctx.font = 'italic 20px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('Trust the model. Not outside the training set. Not ever.', w / 2, h - 28);
+      }
+
+      // Poster 4: VASP flowchart (right wall z=-14)
+      function posterVASP(ctx, w, h) {
+        ctx.fillStyle = '#fff8e8'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'VASP: A USER\'S JOURNEY', 'Very Anxious Scientists\' Program', '#6a1a00', '#fff');
+        const box = (x, y, bw, bh, bg, text, textColor) => {
+          ctx.fillStyle = bg; ctx.beginPath();
+          ctx.roundRect ? ctx.roundRect(x, y, bw, bh, 8) : ctx.rect(x, y, bw, bh);
+          ctx.fill(); ctx.strokeStyle = '#333'; ctx.lineWidth = 2; ctx.stroke();
+          ctx.fillStyle = textColor || '#222'; ctx.font = '20px Arial'; ctx.textAlign = 'center';
+          const lines = text.split('\n');
+          lines.forEach((l, i) => ctx.fillText(l, x + bw / 2, y + bh / 2 + (i - (lines.length - 1) / 2) * 25));
+        };
+        const arr = (x1, y1, x2, y2) => {
+          ctx.strokeStyle = '#555'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+          const ang = Math.atan2(y2 - y1, x2 - x1);
+          ctx.lineTo(x2 - 12 * Math.cos(ang - 0.4), y2 - 12 * Math.sin(ang - 0.4));
+          ctx.moveTo(x2, y2);
+          ctx.lineTo(x2 - 12 * Math.cos(ang + 0.4), y2 - 12 * Math.sin(ang + 0.4));
+          ctx.stroke();
+        };
+        const bw = 300, bh = 52, mx = w / 2 - bw / 2;
+        box(mx, 135, bw, bh, '#d6eaff', 'Submit VASP job'); arr(w / 2, 187, w / 2, 207);
+        box(mx, 207, bw, bh, '#fffbe6', 'SCF converging?'); arr(w / 2, 259, w / 2, 279);
+        box(mx, 279, bw, bh, '#ffe0e0', 'Increase ENCUT\n(again)'); arr(w / 2, 353, w / 2, 373);
+        box(mx, 373, bw, bh, '#ffe0e0', 'Try ALGO=Fast\n(hope for the best)'); arr(w / 2, 447, w / 2, 467);
+        box(mx, 467, bw, bh, '#ffe0e0', 'Email advisor\n(attach OUTCAR)'); arr(w / 2, 541, w / 2, 561);
+        box(mx, 561, bw, bh, '#d4f8d4', 'Accept uncertainty.\nPublish anyway.');
+        // YES branch
+        ctx.fillStyle = '#1a6a1a'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'left';
+        ctx.fillText('NO', w / 2 + bw / 2 + 8, 240);
+        ctx.fillStyle = '#1a6a1a'; ctx.fillText('YES (rarely)', w / 2 - bw / 2 - 105, 240);
+        const shortcutX = mx - 120;
+        arr(mx, 233, shortcutX, 233); ctx.beginPath(); ctx.moveTo(shortcutX, 233); ctx.lineTo(shortcutX, 620); ctx.stroke();
+        box(shortcutX - 130, 570, 128, 52, '#d4f8d4', 'Celebrate.\nBriefly.');
+        arr(shortcutX, 596, shortcutX - 2, 596);
+      }
+
+      // Poster 5: Recent Publications (right wall z=2)
+      function posterPubs(ctx, w, h) {
+        ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'RECENT PUBLICATIONS', 'Goldsmith Lab · 2025 - 2026');
+        const pubs = [
+          {
+            num: '70', year: '2026', journal: 'J. Phys. Chem.',
+            t1: 'Facet effects of Cu and Ag on C-N coupling in',
+            t2: 'CO\u2082-NO\u2083\u207b electroreduction',
+            auth: 'R. Dantuluri, B. Tran, B. R. Goldsmith*'
+          },
+          {
+            num: '69', year: '2026', journal: 'arXiv',
+            t1: 'Goal-oriented influence-maximizing data acquisition',
+            t2: 'for learning and optimization',
+            auth: 'W. Yao, B. Dumitrascu, B. R. Goldsmith, Y. Wang'
+          },
+          {
+            num: '68', year: '2026', journal: 'Nat. Commun.',
+            t1: 'Nitrogen fixation in a non-equilibrium',
+            t2: 'spatial-distributed electric field',
+            auth: 'S. Guo, Y. Wang, Y. Guo, B. R. Goldsmith, H. Zhao*'
+          },
+          {
+            num: '67', year: '2026', journal: 'Sci. Advances',
+            t1: 'Ion-specific differences in transport behavior',
+            t2: 'within charged polymer membranes',
+            auth: 'D. Kitto, G. Reimonn, R. Vickers, ... B. R. Goldsmith, J. Kamcev*'
+          },
+          {
+            num: '66', year: '2025', journal: 'J. Am. Chem. Soc.',
+            t1: 'Multilayer formation, interfacial binding, and stability of',
+            t2: 'self-assembled molecules in perovskite solar cells',
+            auth: 'C. A. Figueroa Morales, Z. Pizzo, ... B. R. Goldsmith*, X. Gong*'
+          },
+        ];
+        pubs.forEach((p, i) => {
+          const yb = 135 + i * 110;
+          ctx.fillStyle = i % 2 === 0 ? '#eef2ff' : '#ffffff';
+          ctx.fillRect(20, yb, w - 40, 105);
+          ctx.strokeStyle = '#ccd'; ctx.lineWidth = 1; ctx.strokeRect(20, yb, w - 40, 105);
+          // Number badge
+          ctx.fillStyle = '#00274c';
+          ctx.beginPath();
+          if (ctx.roundRect) ctx.roundRect(26, yb + 12, 42, 26, 5); else ctx.rect(26, yb + 12, 42, 26);
+          ctx.fill();
+          ctx.fillStyle = '#ffcb05'; ctx.font = 'bold 17px Arial'; ctx.textAlign = 'center';
+          ctx.fillText('#' + p.num, 47, yb + 31);
+          // Title lines
+          ctx.fillStyle = '#00274c'; ctx.font = 'bold 18px Arial'; ctx.textAlign = 'left';
+          ctx.fillText(p.t1, 80, yb + 30);
+          ctx.fillStyle = '#2a3a6a'; ctx.font = '18px Arial';
+          ctx.fillText(p.t2, 80, yb + 52);
+          // Authors
+          ctx.fillStyle = '#555'; ctx.font = '16px Arial';
+          ctx.fillText(p.auth, 26, yb + 76);
+          // Journal + year
+          ctx.fillStyle = p.year === '2026' ? '#1a6a1a' : '#4a2a8a';
+          ctx.font = 'bold 16px Arial'; ctx.textAlign = 'right';
+          ctx.fillText(p.journal + ' (' + p.year + ')', w - 30, yb + 95);
+        });
+        ctx.fillStyle = '#999'; ctx.font = 'italic 18px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('goldsmithlab.engin.umich.edu', w / 2, h - 20);
+      }
+
+      // Poster 6: Group Meeting Agenda (right wall z=16)
+      function posterGroupMtg(ctx, w, h) {
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'GROUP MEETING', 'Friday 2:00 PM -- Attendance Non-Negotiable');
+        const items = [
+          ['MANDATORY', 'Volcano plot. No exceptions. One slide minimum.'],
+          ['MANDATORY', 'Error bars on ALL figures. Even the schematic.'],
+          ['MANDATORY', '3 new slides since last week. Prof. G will count.'],
+          ['STRONGLY', 'An excuse for the 3 slides. Be creative.'],
+          ['ENCOURAGED', 'Update on whether DFT agrees with experiment.'],
+          ['OPTIONAL', '(it doesn\'t. we all know. show the graph anyway)'],
+          ['FORBIDDEN', 'Plots with no axis labels. (Cameron enforces this)'],
+          ['FORBIDDEN', '"I think it converged" without OUTCAR evidence.'],
+        ];
+        items.forEach(([label, text], i) => {
+          const y = 150 + i * 68;
+          const lc = label === 'MANDATORY' ? '#c0392b' : label === 'FORBIDDEN' ? '#7b0000' : label === 'OPTIONAL' ? '#888' : '#1a6a1a';
+          ctx.fillStyle = lc; ctx.font = 'bold 20px Arial'; ctx.textAlign = 'left';
+          ctx.fillText(label, 28, y);
+          ctx.fillStyle = '#222'; ctx.font = '19px Arial';
+          ctx.fillText(text, 28, y + 26);
+          ctx.strokeStyle = '#eee'; ctx.lineWidth = 1;
+          ctx.beginPath(); ctx.moveTo(20, y + 42); ctx.lineTo(w - 20, y + 42); ctx.stroke();
+        });
+        ctx.fillStyle = '#555'; ctx.font = 'italic 18px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('Coffee provided. Quality: not guaranteed. Quantity: never enough.', w / 2, h - 28);
+      }
+
+      // Poster 7: Go Blue (back wall x=-10)
+      function posterGoBlue(ctx, w, h) {
+        ctx.fillStyle = '#00274c'; ctx.fillRect(0, 0, w, h);
+        // Yellow band
+        ctx.fillStyle = '#ffcb05'; ctx.fillRect(0, h * 0.42, w, h * 0.16);
+        ctx.fillStyle = '#00274c'; ctx.font = 'bold 46px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('GOLDSMITH LAB', w / 2, h * 0.42 + 56);
+        ctx.fillStyle = '#ffcb05'; ctx.font = 'bold 68px Arial';
+        ctx.fillText('GO BLUE', w / 2, h * 0.32);
+        ctx.fillStyle = 'rgba(255,203,5,0.8)'; ctx.font = '26px Arial';
+        ctx.fillText('Computational Catalysis & Data Science', w / 2, h * 0.62);
+        ctx.fillStyle = 'rgba(255,255,255,0.6)'; ctx.font = '22px Arial';
+        ctx.fillText('University of Michigan · Chemical Engineering', w / 2, h * 0.74);
+        ctx.fillStyle = 'rgba(255,255,255,0.35)'; ctx.font = 'italic 20px Arial';
+        ctx.fillText('Where every result comes with error bars.', w / 2, h * 0.88);
+      }
+
+      // Poster 8: DFT vs Reality (back wall x=10)
+      function posterDFTvsReality(ctx, w, h) {
+        ctx.fillStyle = '#fafafa'; ctx.fillRect(0, 0, w, h);
+        drawHeader(ctx, w, 'DFT vs REALITY', 'A statistical analysis of how optimistic we are', '#2a4a6a', '#fff');
+        // Bar chart
+        const cats = ['DFT\naccuracy', 'MLIP\ntest MAE', 'deadline\nestimate', 'queue\nwait time', 'error bar\ncoverage'];
+        const predicted = [0.92, 0.96, 0.7, 0.3, 0.85];
+        const actual = [0.81, 0.87, 0.25, 0.88, 0.72];
+        const chartX = 90, chartY = 145, chartW = w - 120, chartH = h - 270;
+        const barW = chartW / cats.length;
+        ctx.strokeStyle = '#ccc'; ctx.lineWidth = 1;
+        for (let g = 0; g <= 4; g++) {
+          const gy = chartY + chartH - g * chartH / 4;
+          ctx.beginPath(); ctx.moveTo(chartX, gy); ctx.lineTo(chartX + chartW, gy); ctx.stroke();
+          ctx.fillStyle = '#999'; ctx.font = '17px Arial'; ctx.textAlign = 'right';
+          ctx.fillText((g * 25) + '%', chartX - 6, gy + 6);
+        }
+        cats.forEach((cat, i) => {
+          const bx = chartX + i * barW + barW * 0.12;
+          const bw2 = barW * 0.35;
+          // Predicted (blue)
+          const ph2 = predicted[i] * chartH;
+          ctx.fillStyle = '#00274c'; ctx.fillRect(bx, chartY + chartH - ph2, bw2, ph2);
+          // Actual (red)
+          const ah = actual[i] * chartH;
+          ctx.fillStyle = '#e74c3c'; ctx.fillRect(bx + bw2 + 3, chartY + chartH - ah, bw2, ah);
+          // Label
+          ctx.fillStyle = '#444'; ctx.font = '17px Arial'; ctx.textAlign = 'center';
+          const lines = cat.split('\n');
+          lines.forEach((l, li) => ctx.fillText(l, bx + bw2, chartY + chartH + 26 + li * 20));
+        });
+        // Legend
+        ctx.fillStyle = '#00274c'; ctx.fillRect(chartX, chartY + chartH + 85, 20, 16);
+        ctx.fillStyle = '#333'; ctx.font = '18px Arial'; ctx.textAlign = 'left';
+        ctx.fillText('predicted', chartX + 26, chartY + chartH + 100);
+        ctx.fillStyle = '#e74c3c'; ctx.fillRect(chartX + 150, chartY + chartH + 85, 20, 16);
+        ctx.fillStyle = '#333'; ctx.fillText('actual', chartX + 176, chartY + chartH + 100);
+        ctx.fillStyle = '#888'; ctx.font = 'italic 20px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('All differences within experimental uncertainty. Probably.', w / 2, h - 22);
+      }
+
+      // Left wall (x=-25, normal = +x toward interior: ry = +PI/2)
+      addPoster(posterVolcano, -24.78, 2.8, -14, Math.PI / 2);
+      addPoster(posterUQ, -24.78, 2.8, 2, Math.PI / 2);
+      addPoster(posterMLIP, -24.78, 2.8, 16, Math.PI / 2);
+
+      // Right wall (x=25, normal = -x toward interior: ry = -PI/2)
+      addPoster(posterVASP, 24.78, 2.8, -14, -Math.PI / 2);
+      addPoster(posterPubs, 24.78, 2.8, 2, -Math.PI / 2);
+      addPoster(posterGroupMtg, 24.78, 2.8, 16, -Math.PI / 2);
+
+      // Back wall (z=25, face -z: ry = PI), offset to z=24.78
+      addPoster(posterGoBlue, -10, 2.8, 24.78, Math.PI);
+      addPoster(posterDFTvsReality, 10, 2.8, 24.78, Math.PI);
+    })();
+
+    // ── Floating text ──────────────────────────────────────────────────────────
+    function floatTxt(txt, wp) {
+      const sp = wp.clone().project(camera);
+      const d = document.createElement('div'); d.className = 'ft'; d.textContent = txt;
+      d.style.left = (sp.x * .5 + .5) * innerWidth + 'px';
+      d.style.top = (-.5 * sp.y + .5) * innerHeight + 'px';
+      d.style.color = ['#ffcb05', '#00ff88', '#ff6666', '#88ccff', '#fff'][Math.floor(Math.random() * 5)];
+      document.body.appendChild(d); setTimeout(() => d.remove(), 2000);
+    }
+
+    // ── Characters ─────────────────────────────────────────────────────────────
+    const chars = [];
+    function makeChar(name, role, x, z, shirtMat, data) {
+      const g = new THREE.Group();
+      g.add(M(new THREE.CylinderGeometry(.22, .26, .72, 8), shirtMat, 0, .63, 0));
+      const lA = M(new THREE.CylinderGeometry(.062, .062, .5, 6), shirtMat, -.28, .67, 0); lA.rotation.z = Math.PI / 8; g.add(lA);
+      const rA = M(new THREE.CylinderGeometry(.062, .062, .5, 6), shirtMat, .28, .67, 0); rA.rotation.z = -Math.PI / 8; g.add(rA);
+      g.add(M(new THREE.CylinderGeometry(.082, .082, .7, 6), mat.navy, -.12, .35, 0));
+      g.add(M(new THREE.CylinderGeometry(.082, .082, .7, 6), mat.navy, .12, .35, 0));
+      g.add(M(new THREE.SphereGeometry(.22, 8), mat.skin, 0, 1.17, 0));
+      const hair = M(new THREE.SphereGeometry(.24, 8), C(data.hc), 0, 1.26, 0);
+      hair.scale.y = .57; g.add(hair);
+      const em = C(0x111111);
+      g.add(M(new THREE.SphereGeometry(.021, 4), em, -.072, 1.17, .2));
+      g.add(M(new THREE.SphereGeometry(.021, 4), em, .072, 1.17, .2));
+      const nc = document.createElement('canvas'); nc.width = 320; nc.height = 72;
+      const nx = nc.getContext('2d');
+      nx.fillStyle = 'rgba(0,39,76,0.93)'; nx.fillRect(0, 0, 320, 72);
+      nx.fillStyle = '#ffcb05'; nx.font = 'bold 19px Arial'; nx.textAlign = 'center'; nx.fillText(name, 160, 26);
+      nx.fillStyle = '#aac8ff'; nx.font = '14px Arial'; nx.fillText(role, 160, 48);
+      const tag = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(nc) }));
+      tag.position.y = 1.8; tag.scale.set(2.2, .5, 1); g.add(tag);
+      g.position.set(x, 0, z);
+      g.userData = {
+        name, role, convs: [],
+        ip: new THREE.Vector3(x, 0, z),
+        tp: new THREE.Vector3(x, 0, z),
+        mt: 0, dancing: false, tc: .0007, lA, rA,
+        idleAnim: 'walk', idleTimer: Math.random() * 4,
+        ...data
+      };
+      chars.push(g); return g;
+    }
+
+    const bryan = makeChar('Prof. Goldsmith', 'Principal Investigator', 0, -14, mat.navy, { hc: 0x3a2010, p: `runs the lab with a focus on sustainable chemical conversion and pollution reduction, drawing on his time at the Fritz Haber Institute`, q: `reminds everyone that data science must be grounded in rigorous first-principles modeling` });
+    const yanYing = makeChar('Yan Ying', 'Postdoc', -9, -16, C(0x9b59b6), { hc: 0x1a1a1a, p: `Schmidt Postdoc who integrates computational and experimental approaches, speaking multiple languages while developing sustainable materials`, q: `translates experimental anomalies into computational hypotheses while planning her next travel destination` });
+    const weichi = makeChar('Weichi', 'Postdoc', 9, -16, C(0xe91e8c), { hc: 0x2a1a1a, p: `statistics PhD developing generative AI architectures for materials discovery while mentally composing violin sonatas`, q: `approaches materials discovery as a representation learning problem and finds statistical humor in failing calculations` });
+    const anthony = makeChar('Anthony', 'Postdoc', -18, -13, C(0x27ae60), { hc: 0x1a0800, p: `Schmidt African Faculty Fellow expert in metal-based molecular nanocatalysts who connects every computation back to biomass conversion`, q: `evaluates catalyst performance based on its potential to upgrade biomass feedstocks into valuable chemicals` });
+    const cameron = makeChar('Cameron', 'PhD Student', 18, -13, C(0xf39c12), { hc: 0x6a3a10, p: `NSF Fellow obsessed with uncertainty quantification in heterogeneous catalysis, constantly optimizing his running routes`, q: `adds rigorous error bars to his renewable energy predictions and draws the resulting potential energy surfaces` });
+    const ankit = makeChar('Ankit', 'PhD Student', -18, -6, C(0x2980b9), { hc: 0x3a2010, p: `first-principles modeler transitioning from biomass gasification to machine learning, with a fierce squash serve`, q: `finds the computational analog to a perfect badminton smash when modeling renewable energy systems` });
+    const oluwatosin = makeChar('Oluwatosin', 'PhD Student', 18, -6, C(0x16a085), { hc: 0x1a0a00, p: `former reservoir engineer navigating amorphous catalytic systems and global energy policy between soccer matches`, q: `connects microscopic amorphous catalyst behavior to macroeconomic global energy policies` });
+    const chenggong = makeChar('Chenggong', 'PhD Student (ML/MD)', -11, 2, C(0x8e44ad), { hc: 0x1a1a1a, p: `DFT and ML catalysis expert who approaches neural network training with the precision of a master chef`, q: `balances complex density functional theory calculations with long hiking trips to clear his mind` });
+    const dean = makeChar('Dean', 'PhD Student', 11, 2, C(0x2c3e50), { hc: 0x5a3010, p: `former climate and energy analyst now applying machine learning to electrocatalysis and renewable energy`, q: `benchmarks electrocatalytic performance while referencing something he recently read in a sci-fi novel` });
+    const roshini = makeChar('Roshini', 'PhD Student', -18, 8, C(0xe74c3c), { hc: 0x2a1a0a, p: `ML-aided computational catalyst hunter specializing in the hydrogen evolution reaction, finding clarity through meditation`, q: `approaches the search for the perfect HER catalyst with the patience gained from backcountry backpacking` });
+    const maurycy = makeChar('Maurycy', 'PhD Student', 18, 8, C(0xd35400), { hc: 0x4a2a10, p: `organic synthesis veteran now using DFT and data science to turn terpenes into sustainable aviation fuels`, q: `debates the nuances of electrocatalytic hydrogenation while holding an imaginary cigar at a coffee shop` });
+    const aeva = makeChar('Aeva', 'PhD Student', -11, 13, C(0x1abc9c), { hc: 0x5a3a20, p: `environmental engineer applying her GIS and spatiotemporal analysis skills to computational chemistry`, q: `has an involuntary reflex to map the geospatial implications of every renewable energy catalyst she studies` });
+    const sila = makeChar('Sila', 'PhD Student', 11, 13, C(0x9b59b6), { hc: 0x2a1a1a, p: `expert in kinetic modeling and protein dynamics who pirouettes through electrocatalysis and data science`, q: `compares the intricate kinetic modeling of combustion reactions to the choreography of a complex dance` });
+    const varun = makeChar('Varun', 'PhD Student', -18, 18, C(0x2ecc71), { hc: 0x2a1a0a, p: `former Amazon Applied Scientist using demand forecasting algorithms for extrapolative materials discovery`, q: `scrolls Reddit between gym sets while his machine learning models extrapolate properties into new domains` });
+    const maxim = makeChar('Maxim', 'PhD Student', 0, 18, C(0xe67e22), { hc: 0x3a2010, p: `sensor technology veteran predicting protein catalysis using the Boltz-2 framework and accelerated DFT`, q: `treats hybrid computational models like a fast break in basketball, relying on quick hybrid decision-making` });
+    const diego = makeChar('Diego', 'PhD Student', 18, 18, C(0x3498db), { hc: 0x1a0a00, p: `specialist in mixed metal oxide catalysts for groundwater remediation and an uncompromising San Antonio Spurs fan`, q: `evaluates electrocatalytic nitrate reduction mechanisms with the same tactical scrutiny as a Spurs playoff game` });
+    const yifei = makeChar('Yifei', 'Undergraduate', -7, 22, C(0xffcb05), { hc: 0x1a1a1a, p: `undergraduate researcher framing battery materials and DFT problems through the lens of a camera and ultimate frisbee flight paths`, q: `envisions lithium-ion transport in battery materials as an ultimate frisbee floating perfectly into the endzone` });
+    const therresa = makeChar('Therresa', 'Undergraduate', 2, 22, C(0xff69b4), { hc: 0x2a1a0a, p: `chemical and electrical engineering double-threat modeling cyclic terpene hydrogenation for sustainable aviation fuel`, q: `approaches the complexities of aviation fuel catalysis with a deep appreciation for good food and friends` });
+    const jessica = makeChar('Jessica', 'Undergraduate', 11, 22, C(0x76d7c4), { hc: 0x5a3a20, p: `materials science undergrad modeling palladium membrane reactors while sketching mechanisms with her dog Milo`, q: `doodles incredibly detailed palladium membrane reactors and terpene pathways while listening to music` });
+
+    scene.add(bryan, yanYing, weichi, anthony, cameron, ankit, oluwatosin, chenggong, dean, roshini, maurycy, aeva, sila, varun, maxim, diego, yifei, therresa, jessica);
+
+    // ── Player ─────────────────────────────────────────────────────────────────
+    const player = { pos: new THREE.Vector3(0, 1.6, 12), speed: .09, dancing: false };
+    const keys = {}; let mouseX = 0, mouseY = 0;
+
+    // ── Dialogue ───────────────────────────────────────────────────────────────
+    const dBox = document.getElementById('dbox'), dName = document.getElementById('dname'),
+      dCont = document.getElementById('dcont'), dOpts = document.getElementById('dopts'),
+      ipr = document.getElementById('ipr'), cqi = document.getElementById('cqi'), cqb = document.getElementById('cqb');
+    let curChar = null, nearChar = null;
+
+    const QS = [
+      `Is your VASP job converged yet?`,
+      `What ENCUT are you running and can you justify it?`,
+      `How many k-points is too many k-points?`,
+      `PBE or PBE+U — defend your choice under oath.`,
+      `Have you included van der Waals corrections? Are you really sure?`,
+      `How many SCF cycles before you start writing your will?`,
+      `What is your favorite exchange-correlation functional and why is it wrong?`,
+      `Is your model overfitting or is the validation set just having a bad day?`,
+      `How do you validate a machine learning potential without losing sleep?`,
+      `Have you quantified the uncertainty on that? What about the uncertainty on the uncertainty?`,
+      `What architecture are you using and have you properly ablated it or just guessed?`,
+      `How far outside the training distribution are we talking, exactly?`,
+      `Is your loss function physically motivated or spiritually motivated?`,
+      `Where are you on the volcano plot? Be honest.`,
+      `What is your limiting potential and are you emotionally prepared for it?`,
+      `How does the d-band center look for your surface, and how do you feel about that?`,
+      `Have you computed the Pourbaix diagram or are you living dangerously?`,
+      `Are you ready for group meeting, or are you making slides right now?`,
+      `How many slides did Prof. Goldsmith ask you to add last time?`,
+      `What is the most creative excuse for slow progress you have ever deployed?`,
+      `Rate the group meeting coffee on a scale of 1 to dG.`,
+      `Why did you choose computational over experimental research? Real reason.`,
+      `What would you do if DFT and experiment agreed perfectly on the first try?`,
+      `How many papers are in your to-read pile right now? Round to the nearest ten.`,
+      `If your research were a movie genre, what would it be?`,
+      `Which element best describes your current mood and why?`,
+      `If your catalyst had a Rotten Tomatoes score, what would it be and who wrote the bad reviews?`,
+      `What is the activation barrier for enjoying a Monday morning?`,
+      `Have you ever dreamed in Cartesian coordinates?`,
+      `Would you rather fight 100 unit cells or one giant supercell?`,
+      `What would you tell your past self before their first VASP submission?`,
+      `Has your best research result come from a bug or from intentional science?`,
+    ];
+    function randOpts(n = 4) { return [...QS].sort(() => Math.random() - .5).slice(0, n); }
+
+    function openDlg(ch) {
+      curChar = ch; dBox.style.display = 'block';
+      if (document.pointerLockElement === renderer.domElement) document.exitPointerLock();
+      dName.textContent = `${ch.userData.name} — ${ch.userData.role}`;
+      const greets = [
+        `Hey — ${ch.userData.name} here. Fair warning: I ${ch.userData.q}.`,
+        `Oh, hi. ${ch.userData.name}. My VASP job is ${['running', 'queued', 'quietly on fire', 'somehow still going', 'in state "E"'][Math.floor(Math.random() * 5)]}. What do you want?`,
+        `${ch.userData.name}. I was just ${['debugging a Python script that was fine yesterday', 'staring at my OUTCAR like it owes me money', 're-reading the same paper for the 5th time', 'arguing with the scheduler about priorities'][Math.floor(Math.random() * 4)]}. Ask away.`,
+        `${ch.userData.name}, reporting for duty. I ${ch.userData.p}. Questions?`,
+        `Oh good, a visitor. I was starting to think my only social interaction this week would be with VASP error messages. I'm ${ch.userData.name}.`,
+      ];
+      dCont.innerHTML = `<p><strong>${ch.userData.name}:</strong> ${greets[Math.floor(Math.random() * greets.length)]}</p>`;
+      renderOpts(); cqi.value = ''; setTimeout(() => cqi.focus(), 80);
+    }
+
+    function renderOpts() {
+      dOpts.innerHTML = '';
+      randOpts().forEach(q => {
+        const d = document.createElement('div'); d.className = 'opt'; d.textContent = q;
+        d.onclick = () => ask(q); dOpts.appendChild(d);
+      });
+    }
+    // Local Ollama (Qwen) backend
+    async function callOllama(prompt) {
+      const res = await fetch('http://127.0.0.1:11434/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'qwen3.5:35b-a3b-q4_K_M',
+          messages: [
+            {
+              role: 'system',
+              content: 'You are a specific member of Prof. Bryan Goldsmith\'s computational catalysis and data science lab at University of Michigan Chemical Engineering. Answer in first person as that character with dry wit, technically precise, gently self-deprecating tone.'
+            },
+            {
+              role: 'user',
+              content: prompt
+            }
+          ],
+          stream: true,
+          think: false
+        })
+      });
+      if (!res.ok) {
+        throw new Error('Ollama HTTP error ' + res.status);
+      }
+      return res.body;
+    }
+
+    async function ask(q) {
+      if (!curChar) return;
+      dCont.innerHTML += `<p><strong>You:</strong> ${q}</p>`;
+      dCont.innerHTML += `<p><strong>${curChar.userData.name}:</strong> <span class="spin"></span></p>`;
+      dCont.scrollTop = dCont.scrollHeight;
+      dOpts.style.opacity = '.4'; dOpts.style.pointerEvents = 'none';
+      cqi.disabled = true; cqb.disabled = true;
+      let reply = '';
+      try {
+        const prompt = `You are ${curChar.userData.name}, a ${curChar.userData.role} in Prof. Bryan Goldsmith's computational catalysis and data science lab at University of Michigan Chemical Engineering.
+
+Personality in one line: ${curChar.userData.p}.
+Signature behavioral quirk: ${curChar.userData.q}.
+
+Lab context: DFT (VASP), ML potentials, uncertainty quantification, electrocatalysis, data science. Common pain points: VASP convergence hell, volcano plots where everyone claims the peak, neural network potentials extrapolating into chaos, and group meetings where Prof. Goldsmith always wants more error bars. Always more. Lab members: postdocs Yan Ying, Weichi, Anthony; PhD students Cameron, Ankit, Oluwatosin, Chenggong, Dean, Roshini, Maurycy, Aeva, Sila, Varun, Maxim, Diego; undergrads Yifei, Therresa, Jessica.
+
+The user just asked you: "${q}"
+
+Reply as this character with a dry wit, technically precise, gently self-deprecating tone. Keep your response relatively concise (about 2-4 sentences). Reference at least one specific DFT parameter, ML metric, thermodynamic quantity, or named concept naturally. If the question is silly, gently make a joke. If it's serious, answer seriously but add one wry observation.`;
+        const stream = await callOllama(prompt);
+        const reader = stream.getReader();
+        const decoder = new TextDecoder('utf-8');
+        dCont.innerHTML = dCont.innerHTML.replace('<span class="spin"></span>', '');
+        
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const streamLines = buffer.split('\n');
+          buffer = streamLines.pop(); // keep the partial line
+          for (const line of streamLines) {
+            if (!line.trim()) continue;
+            try {
+              const parsed = JSON.parse(line);
+              if (parsed.message && parsed.message.content) {
+                 reply += parsed.message.content;
+                 const lastP = dCont.lastElementChild;
+                 if (lastP && lastP.innerHTML.includes(curChar.userData.name)) {
+                     lastP.innerHTML = `<strong>${curChar.userData.name}:</strong> ${reply.replace(/</g, "&lt;").replace(/>/g, "&gt;")}`;
+                 } else {
+                     dCont.innerHTML += `<p><strong>${curChar.userData.name}:</strong> ${reply.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</p>`;
+                 }
+                 dCont.scrollTop = dCont.scrollHeight;
+              }
+            } catch(e) {}
+          }
+        }
+        if (reply) reply = reply.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        if (!reply || !reply.trim()) reply = fallback(curChar);
+      } catch (e) {
+        console.error('Ollama Stream Error:', e);
+        // Remove the spinning indicator
+        const spinEl = dCont.querySelector('.spin');
+        if (spinEl) spinEl.closest('p').remove();
+        // Check if it's a CORS / network error
+        const isCORS = e instanceof TypeError && (e.message.includes('Failed to fetch') || e.message.includes('NetworkError') || e.message.includes('CORS'));
+        if (isCORS) {
+          dCont.innerHTML += `<p style="color:#e74c3c;font-size:12px;border:1px solid #e74c3c;padding:6px 10px;border-radius:6px;margin:6px 0;">⚠️ <b>Cannot reach Ollama (CORS blocked).</b> Please use the <code>start.command</code> script to launch the simulator, or run: <code>python3 -m http.server 8000</code> in the simulator folder and open <code>localhost:8000</code>.<br>Using offline response instead.</p>`;
+        }
+        reply = fallback(curChar);
+        dCont.innerHTML += `<p><strong>${curChar.userData.name}:</strong> ${reply}</p>`;
+      }
+      curChar.userData.convs.push({ q, r: reply });
+      dCont.scrollTop = dCont.scrollHeight;
+      if (Math.random() < .28) floatTxt(['UQ!', 'R2=1!', 'SCF!', 'NaN?', 'DFT!', 'p<0.05', 'VASP!', 'loss?', 'dG<0!'][Math.floor(Math.random() * 9)], curChar.position);
+      renderOpts();
+      dOpts.style.opacity = '1'; dOpts.style.pointerEvents = 'auto';
+      cqi.disabled = false; cqb.disabled = false; cqi.focus();
+    }
+
+    // ── Fallback responses ──────────────────────────────────────────────────────
+    function fallback(ch) {
+      const P = {
+        'Prof. Goldsmith': [
+          `As associate editor, I can assure you that this needs more rigorous first-principles modeling before we can publish it.`,
+          `Sustainable chemical conversion requires pristine data. Add error bars to the error bars, then schedule a group meeting.`,
+          `I published something directly relevant to this during my time in Berlin. Look at the error bars in Figure 3.`,
+          `That's a reasonable data science prior. Now update it with first-principles models. Properly. With bootstrapped uncertainties.`,
+        ],
+        'Yan Ying': [
+          `My experience integrating computation and experiment across three institutions suggests we need more data. Also, do you play any instruments?`,
+          `I would verify that in at least three theoretical frameworks before committing. I learned this lesson simultaneously in multiple languages.`,
+          `My instinct: characterize first, model second, conclude third, plan a trip fourth. Skipping any step leads to a painful reviewer comment.`,
+          `This discrepancy looks like an error until you realize it is actually a sustainable materials publication in the making.`,
+        ],
+        'Weichi': [
+          `From a generative modeling perspective, your extrapolation is out of bounds. We should go hiking to think about it.`,
+          `The latent space of this question has at least four meaningful dimensions. Let me project it while I mentally compose a violin sonata.`,
+          `My Bayesian prior on this new material is surprisingly informative. Have you run the representation learning model on it yet?`,
+          `The intrinsic dimensionality of your problem is probably lower than you think. That's either comedy or a tragedy. I prefer comedy.`,
+        ],
+        'Anthony': [
+          `In molecular nanocatalysis, the ligand environment controls biomass conversion. Let's review the mechanism.`,
+          `From Kenya to Beijing to Michigan — I have studied many catalytic systems. They all depend on the right metal and the right ligand.`,
+          `Nature already optimized a version of this in some biomass-derived molecule. We just need to find the mechanism and upgrade it.`,
+          `The real question is whether this nanocatalyst scales to actual reactor conditions for biomass conversion.`,
+        ],
+        'Cameron': [
+          `My uncertainty quantification on that statement is high. Let me run another process improvement loop.`,
+          `I once added error bars to my error bars and made a nested uncertainty figure. The NSF demands nothing less.`,
+          `UQ tells us: your intuition is a prior. Update it with data. Then go for a run to metabolize what the posterior implies.`,
+          `I have a bootstrapped confidence interval for this heterogeneous catalyst. Spoiler: the interval is wider than you want it to be.`,
+        ],
+        'Ankit': [
+          `The first-principles model shows a high activation barrier, much like trying to return my squash serve.`,
+          `I moved from biomass gasification in Alberta to machine learning in Michigan. Different barriers. Worse coffee. Same love of physics.`,
+          `DFT non-negotiables: correct functional, sufficient ENCUT, and a solid badminton forehand smash. All three are essential.`,
+          `The geometry optimization is straightforward. It's the ML convergence that will age you.`,
+        ],
+        'Oluwatosin': [
+          `Amorphous systems are unpredictable, just like the energy sector. My ML model is still trying to decode it.`,
+          `From Nigerian energy policy to UMich: every system I've studied runs on controlled disorder. This catalyst is no different.`,
+          `ML on amorphous catalysts: you don't know the ground state structure, so you let the model find it while you play soccer.`,
+          `The global energy policy implications here are actually significant. Give me five minutes and I'll connect this to global electrification.`,
+        ],
+        'Chenggong': [
+          `My machine learning model is still training on that data. Let's discuss it over some home-cooked food.`,
+          `I trained a neural network on this exact configuration space last week. The edge cases are the publication.`,
+          `My GPU cluster has been running this for 18 hours. The training loss says we're close to something. I'm going swimming.`,
+          `The MLIP has 0.1 meV/atom MAE on the test set. Whether that's "good" depends on whether your test set looks like the real system.`,
+        ],
+        'Dean': [
+          `The life cycle analysis of this electrocatalytic process is complex. Let me consult my neural network.`,
+          `I went from hydrogen membrane reactors to machine learning in two years. The physics is different. The convergence anxiety is identical.`,
+          `Electrocatalysis truth: thermodynamics sets the ceiling, kinetics spends its career ignoring it, and the data science proves it.`,
+          `My benchmark is always the volcano plot. If the new idea doesn't improve the volcano position, I'm going back to reading.`,
+        ],
+        'Roshini': [
+          `The overpotential for this reaction is too high. I need to meditate on the data before proceeding.`,
+          `HER perspective: if your Tafel slope is 120 mV/dec, you already know the rate-limiting step. You just don't want to admit it.`,
+          `I treat ML-aided catalyst discovery like backpacking mountain trails. Check the topographic map first. Trust the gradient.`,
+          `The transition state is always higher than you hope. This applies to both computational catalysis and hiking.`,
+        ],
+        'Maurycy': [
+          `Sustainable aviation fuel requires precise terpene hydrogenation. Let's discuss this over a good coffee and a cigar.`,
+          `DFT says one thing, data science says another, organic synthesis intuition says a third. I average them.`,
+          `Sustainable aviation fuel research teaches patience. Molecular cages don't care about your submission deadline. At all.`,
+          `The free energy argument for this hydrogenation is actually quite elegant. Let me show you why dG < 0 means we should pursue this.`,
+        ],
+        'Aeva': [
+          `Let's perform a spatiotemporal analysis on this data. Or just read a book while the job queues.`,
+          `Environmental engineering background: the answer always involves both the chemistry AND the spatial distribution. Always both.`,
+          `I used to map wind turbine sites using GIS. Now I map energy surfaces. The coordinate systems changed. The optimization didn't.`,
+          `If I project this onto geographic coordinates it actually tells a very interesting story about resource distribution. Give me ten minutes.`,
+        ],
+        'Sila': [
+          `The kinetic model for this reaction is intricate. I need to bake something to process the transition states.`,
+          `Combustion background says: if the system isn't at steady state, you don't understand it yet. Are we at steady state?`,
+          `Electrocatalysis and dancing share a fundamental principle: timing is everything, and overpotential is the enemy of elegance.`,
+          `The kinetic modeling of this protein's structural dynamics says the rate-limiting step is not what you think. It never is.`,
+        ],
+        'Varun': [
+          `My extrapolative model predicts high uncertainty. I'm going to hit the tennis court until convergence.`,
+          `Amazon-trained instinct: if the model doesn't extrapolate well, the training distribution is wrong. Always check the training distribution.`,
+          `Demand forecasting and materials discovery are the same problem structure: predict future outcomes from historical data. Both are terrifying.`,
+          `ML flag: this query is outside the distribution of my expertise. I will consult Reddit for a 38% confidence interval.`,
+        ],
+        'Maxim': [
+          `My Boltz-2 framework is currently analyzing the protein catalysis. Try adjusting the hybrid model parameters.`,
+          `Protein catalysis and heterogeneous catalysis have more in common than we acknowledge. Both fold under pressure.`,
+          `Hybrid approach: trust DFT for the hard electronic structure, trust Boltz-2 for the embeddings, trust neither blindly.`,
+          `Have you tried the Boltz-2 embedding for this? I treat it like a fast break in basketball—quick decision making.`,
+        ],
+        'Diego': [
+          `The selectivity for nitrate reduction is poor here. Almost as poor as that last call against the Spurs.`,
+          `The Spurs always trusted the process through bad seasons. I trust the mixed-metal oxide mechanism through bad SCF cycles.`,
+          `Groundwater remediation teaches you that the real activation barrier is often regulatory, not chemical. The chemistry is the easy part.`,
+          `From an electrocatalytic nitrate reduction standpoint, this is either a beautiful multi-electron mechanism or a dead end.`,
+        ],
+        'Yifei': [
+          `My battery materials simulation is taking forever. Let's go play some ultimate frisbee.`,
+          `Frisbee principle: follow the gradient to the goal. DFT principle: also follow the gradient to the energy minimum. The convergence criteria are similar.`,
+          `I got into computational research for sustainable energy. I did not anticipate 60% of the time would be VASP troubleshooting.`,
+          `My DFT queue says it could help me appreciate weekends. I'm going to grab my camera and travel.`,
+        ],
+        'Therresa': [
+          `The electrocatalytic hydrogenation circuit is incomplete. Let me check the circuit diagrams and grab some food with friends.`,
+          `ChE and EE double major perspective: every chemical system is just a circuit diagram you haven't drawn yet.`,
+          `I'm modeling sustainable aviation fuel mechanisms with differential equations. That sentence alone justifies the tuition.`,
+          `The cyclic terpene hydrogenation mechanism has an elegant equivalent circuit. I drew it. Someday it will make sense.`,
+        ],
+        'Jessica': [
+          `My DFT model of the palladium membrane reactor is running. Milo and I are just sketching the potential energy surface.`,
+          `Palladium membrane reactors are genuinely elegant systems. DFT confirms this. The activation barriers are surprisingly cooperative.`,
+          `I got into sustainable energy research to help. It turns out helping looks a lot like drawing reaction mechanisms at 11pm.`,
+          `The materials science mechanism I sketched in the margin actually contains the key insight. It usually works out that way.`,
+        ],
+      };
+      const arr = P[ch.userData.name] || [`Great question. Let me run a quick DFT calculation and get back to you once the cluster queue drops below 847 jobs.`];
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    // ── Input ──────────────────────────────────────────────────────────────────
+    document.addEventListener('keydown', e => {
+      if (document.activeElement === cqi) { if (e.key === 'Escape') { dBox.style.display = 'none'; curChar = null; } return; }
+      keys[e.key] = true;
+      if (e.key.toLowerCase() === 'e' && nearChar && dBox.style.display !== 'block') openDlg(nearChar);
+      if (e.key === ' ' && dBox.style.display !== 'block') { e.preventDefault(); player.dancing = true; floatTxt('+1!', player.pos); }
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
+      if (e.key === 'Escape') { dBox.style.display = 'none'; curChar = null; document.exitPointerLock && document.exitPointerLock(); }
+    });
+    document.addEventListener('keyup', e => {
+      if (document.activeElement === cqi) return;
+      keys[e.key] = false; if (e.key === ' ') player.dancing = false;
+    });
+    document.addEventListener('mousemove', e => {
+      if (document.pointerLockElement === renderer.domElement && dBox.style.display !== 'block')
+        mouseX -= e.movementX * .002;
+      mouseY -= e.movementY * .002;
+      mouseY = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, mouseY));
+    });
+    renderer.domElement.addEventListener('click', () => { if (dBox.style.display !== 'block') renderer.domElement.requestPointerLock(); });
+    cqb.addEventListener('click', () => { const v = cqi.value.trim(); if (v && curChar) { ask(v); cqi.value = ''; } });
+    cqi.addEventListener('keypress', e => { if (e.key === 'Enter') { const v = cqi.value.trim(); if (v && curChar) { ask(v); cqi.value = ''; } } });
+
+    // ── Animation ──────────────────────────────────────────────────────────────
+    const _fwd = new THREE.Vector3(), _rgt = new THREE.Vector3(), _euler = new THREE.Euler();
+    const _lookTarget = new THREE.Vector3(), _dir = new THREE.Vector3();
+    let last = 0, bt = 0;
+    function animate(now) {
+      requestAnimationFrame(animate);
+      const dt = Math.min((now - last) / 1000, 0.05); last = now; bt += dt;
+      blinkLights.forEach((b, i) => { b.material.emissiveIntensity = .5 + .5 * Math.sin(bt * 3 + i * 1.3); });
+
+      // Player movement
+      if (!player.dancing && dBox.style.display !== 'block') {
+        _euler.set(0, mouseX, 0);
+        _fwd.set(0, 0, -1).applyEuler(_euler); _fwd.y = 0; _fwd.normalize();
+        _rgt.set(1, 0, 0).applyEuler(_euler); _rgt.y = 0; _rgt.normalize();
+        if (keys['w'] || keys['W']) player.pos.addScaledVector(_fwd, player.speed);
+        if (keys['s'] || keys['S']) player.pos.addScaledVector(_fwd, -player.speed);
+        if (keys['a'] || keys['A']) player.pos.addScaledVector(_rgt, -player.speed);
+        if (keys['d'] || keys['D']) player.pos.addScaledVector(_rgt, player.speed);
+        if (keys['ArrowLeft']) mouseX += .04;
+        if (keys['ArrowRight']) mouseX -= .04;
+        if (keys['ArrowUp']) { mouseY += .03; mouseY = Math.min(Math.PI / 2 - 0.05, mouseY); }
+        if (keys['ArrowDown']) { mouseY -= .03; mouseY = Math.max(-Math.PI / 2 + 0.05, mouseY); }
+      }
+      player.pos.x = Math.max(-23, Math.min(23, player.pos.x));
+      player.pos.z = Math.max(-23, Math.min(23, player.pos.z));
+      camera.position.copy(player.pos);
+      if (player.dancing) { camera.position.y = player.pos.y + Math.sin(now * .01) * .2; camera.rotation.z = Math.sin(now * .012) * .08; }
+      else { camera.rotation.z = 0; }
+      if (dBox.style.display !== 'block') {
+        camera.rotation.order = 'YXZ';
+        camera.rotation.y = mouseX;
+        camera.rotation.x = mouseY;
+      }
+
+      // Character animation
+      chars.forEach(ch => {
+        const ud = ch.userData;
+
+        // Random stumble/panic event
+        if (Math.random() < ud.tc && !ud.dancing && ch !== curChar) {
+          ch.rotation.x = .58; ch.position.y = .18;
+          floatTxt(['SEGFAULT', 'NaN', 'inf loop', 'OOM', '404', 'ENCUT?'][Math.floor(Math.random() * 6)], ch.position);
+          ud.tc = 0;
+          setTimeout(() => { ch.rotation.x = 0; ch.position.y = 0; ud.tc = .0007; }, 1200);
+        }
+
+        // Face player when in dialogue
+        if (ch === curChar) {
+          _lookTarget.set(player.pos.x, ch.position.y, player.pos.z);
+          ch.lookAt(_lookTarget);
+          ch.rotation.x = ch.rotation.z = 0;
+          ud.lA.rotation.z = Math.PI / 8 + Math.sin(now * .004) * 0.08;
+          ud.rA.rotation.z = -Math.PI / 8 - Math.sin(now * .004 + 1) * 0.08;
+          return;
+        }
+
+        // Skip idle state machine if in NPC conversation
+        if (ud.inConvo) {
+          // Keep facing conversation partner — handled by tickNpcChat
+          return;
+        }
+
+        // Random dance trigger
+        if (Math.random() < .0005 && !ud.dancing) {
+          ud.dancing = true;
+          floatTxt(['DFT!', 'p<0.05', 'R2=1!', 'UQ!', 'SCF ok!', 'dG<0!'][Math.floor(Math.random() * 6)], ch.position);
+          setTimeout(() => { ud.dancing = false; }, 3500);
+        }
+
+        if (ud.dancing) {
+          ch.rotation.y += .11;
+          ch.position.y = Math.abs(Math.sin(now * .009)) * .2;
+          ud.lA.rotation.z = Math.sin(now * .01) * .52 + Math.PI / 8;
+          ud.rA.rotation.z = -Math.sin(now * .01) * .52 - Math.PI / 8;
+          return;
+        }
+
+        // Idle animation state machine
+        ud.idleTimer -= dt;
+        if (ud.idleTimer <= 0) {
+          const r = Math.random();
+          if (r < 0.30) { ud.idleAnim = 'typing'; ud.idleTimer = 3 + Math.random() * 5; }
+          else if (r < 0.44) { ud.idleAnim = 'thinking'; ud.idleTimer = 2 + Math.random() * 3; }
+          else if (r < 0.52) { ud.idleAnim = 'coffee'; ud.idleTimer = 1.5 + Math.random() * 2; }
+          else { ud.idleAnim = 'walk'; ud.idleTimer = 3 + Math.random() * 6; }
+        }
+
+        // Apply idle pose
+        if (ud.idleAnim === 'typing') {
+          ch.rotation.x = 0.07;
+          ch.position.y = Math.sin(now * 0.003) * 0.006;
+          ud.lA.rotation.z = Math.PI / 8 + 0.1 + Math.sin(now * 0.016) * 0.12;
+          ud.rA.rotation.z = -Math.PI / 8 - 0.1 - Math.sin(now * 0.016 + 0.9) * 0.12;
+          ud.lA.rotation.x = 0.12; ud.rA.rotation.x = 0.12;
+        } else if (ud.idleAnim === 'thinking') {
+          ch.rotation.x = 0;
+          ch.position.y = 0;
+          ud.lA.rotation.z = Math.PI / 8 + 0.55 + Math.sin(now * 0.006) * 0.04;
+          ud.rA.rotation.z = -Math.PI / 8;
+          ud.lA.rotation.x = -0.1; ud.rA.rotation.x = 0;
+        } else if (ud.idleAnim === 'coffee') {
+          ch.rotation.x = 0;
+          ch.position.y = 0;
+          const lift = Math.max(0, Math.sin(now * 0.007)) * 0.7;
+          ud.rA.rotation.z = -Math.PI / 8 - lift;
+          ud.lA.rotation.z = Math.PI / 8;
+          ud.lA.rotation.x = 0; ud.rA.rotation.x = 0;
+        } else if (ud.idleAnim === 'chatting') {
+          // Chatting with another NPC — animated gestures
+          ch.position.y = 0;
+          ch.rotation.x = 0;
+          // Alternating gesture animation
+          const gesturePhase = Math.sin(now * 0.004);
+          ud.lA.rotation.z = Math.PI / 8 + 0.3 + gesturePhase * 0.25;
+          ud.rA.rotation.z = -Math.PI / 8 - 0.3 - gesturePhase * 0.2;
+          ud.lA.rotation.x = -0.15; ud.rA.rotation.x = -0.15;
+          // Subtle head nod
+          ch.rotation.x = Math.sin(now * 0.005) * 0.04;
+        } else {
+          // walk — reset pose
+          ch.rotation.x = 0;
+          ud.lA.rotation.z = Math.PI / 8;
+          ud.rA.rotation.z = -Math.PI / 8;
+          ud.lA.rotation.x = 0; ud.rA.rotation.x = 0;
+        }
+
+        // Eureka override animation — arms raised!
+        if (ud.eurekaTime > 0) {
+          ud.eurekaTime -= dt;
+          ch.position.y = Math.abs(Math.sin(now * 0.015)) * 0.12;
+          ud.lA.rotation.z = Math.PI / 2 + Math.sin(now * 0.02) * 0.3;
+          ud.rA.rotation.z = -Math.PI / 2 - Math.sin(now * 0.02 + 0.5) * 0.3;
+          ud.lA.rotation.x = -0.5; ud.rA.rotation.x = -0.5;
+        }
+
+        // Frustration override animation — fist shake
+        if (ud.frustTime > 0) {
+          ud.frustTime -= dt;
+          ch.rotation.x = 0.15;
+          ud.rA.rotation.z = -Math.PI / 4 - Math.sin(now * 0.025) * 0.4;
+          ud.lA.rotation.z = Math.PI / 8;
+          ch.position.y = 0;
+        }
+
+        // Movement (only in walk state)
+        ud.mt -= dt;
+        if (ud.mt <= 0) {
+          const a = Math.random() * Math.PI * 2, d = 1.5 + Math.random() * 4;
+          ud.tp.set(
+            Math.max(-22, Math.min(22, ud.ip.x + Math.cos(a) * d)), 0,
+            Math.max(-22, Math.min(22, ud.ip.z + Math.sin(a) * d))
+          );
+          ud.mt = 4 + Math.random() * 5;
+        }
+        if (ud.idleAnim === 'walk') {
+          _dir.subVectors(ud.tp, ch.position); _dir.y = 0;
+          if (_dir.length() > .12) {
+            _dir.normalize(); ch.position.addScaledVector(_dir, .016);
+            ch.lookAt(ud.tp); ch.rotation.x = 0; ch.rotation.z = 0;
+            ch.position.y = Math.abs(Math.sin(now * .006)) * .04;
+            // Walking arm swing
+            ud.lA.rotation.z = Math.PI / 8 + Math.sin(now * .012) * 0.3;
+            ud.rA.rotation.z = -Math.PI / 8 - Math.sin(now * .012) * 0.3;
+          }
+        }
+      });
+
+
+      // ── NPC Autonomous Interactions ──
+      tickNpcChat(dt);
+      tickSelfTalk(dt);
+      tickEureka(dt);
+      tickFrustration(dt);
+
+      // Update NPC chat bubble positions
+      if (npcChatState.bubbleA && npcChatState.pairA) updateBubblePosition(npcChatState.bubbleA, npcChatState.pairA);
+      if (npcChatState.bubbleB && npcChatState.pairB) updateBubblePosition(npcChatState.bubbleB, npcChatState.pairB);
+
+      // Nearest character detection
+      nearChar = null; let minD = Infinity;
+      chars.forEach(ch => { const d = player.pos.distanceTo(ch.position); if (d < 3 && d < minD) { minD = d; nearChar = ch; } });
+      if (nearChar && !curChar) { ipr.style.display = 'block'; ipr.textContent = `Press E to bother ${nearChar.userData.name}`; }
+      else { ipr.style.display = 'none'; }
+      renderer.render(scene, camera);
+    }
+
+    // ── NPC Autonomous Interaction Engine ─────────────────────────────────────
+    const npcChatState = {
+      active: false,       // is an NPC-NPC convo happening?
+      pairA: null,         // first NPC
+      pairB: null,         // second NPC
+      phase: 'idle',       // idle | approaching | talking | cooldown
+      timer: 15 + Math.random() * 20,  // seconds until next conversation attempt
+      cooldown: 0,
+      turnIndex: 0,        // which turn in the conversation
+      maxTurns: 0,         // how many total turns
+      bubbleA: null,
+      bubbleB: null,
+    };
+
+    const labTopics = [
+      // Academic / Lab Life / Research
+      "whether VASP will ever converge on that tricky slab",
+      "the coffee machine making weird noises again",
+      "Prof. Goldsmith's latest error bar feedback",
+      "an ML potential that keeps predicting negative energies",
+      "the group meeting presentation order",
+      "who ate the last donut in the break room",
+      "a paper they're trying to finish before the deadline",
+      "the queue wait time on Great Lakes cluster",
+      "whether DFT or experiment is more wrong this time",
+      "a volcano plot that looks suspiciously perfect",
+      "the new grad student orientation",
+      "the mysterious segfault in their simulation",
+      "the broken office chair that nobody has fixed",
+      "a conference abstract due tomorrow",
+      "whose turn it is to order the lab supplies",
+      "the thermostat in DOW building being stuck on Arctic",
+      "why PBE claims this material is a metal when it's clearly not",
+      "how many k-points are actually necessary before it's just showing off",
+      "the reviewers from Reviewer 2 being completely unreasonable",
+      "the 500GB of OUTCAR files filling up the scratch drive",
+      "whether to use PBE, PBE+U, SCAN, or just give up",
+      "the mystery of the disappearing whiteboard markers",
+      "how to explain their research to their grandparents",
+      "the impending deadline for their NSF fellowship application",
+      "which plotting library actually looks the most professional",
+      "whether to learn Julia or stick with Python forever",
+      "the weird smell coming from the wet lab down the hall",
+      "how many hours of sleep is optimal for debugging C++",
+      "the fact that their code compiled on the first try and now they're terrified",
+      "why the university VPN disconnects exactly when a job finishes",
+      "the anxiety of opening a folder named 'Final_Version_v4_FINAL'",
+      "how to politely tell an undergrad their python script is a biohazard",
+      "the optimal caffeine-to-water ratio for writing a paper introduction",
+      "who left the empty milk carton in the fridge",
+      "the existential dread of reading a paper that just scooped their project",
+      "why the printer only jams when someone is printing a thesis",
+      "the correct pronunciation of 'ab initio'",
+      "whether to add another hidden layer or just collect more data",
+      "how to fake knowing what a 'partition function' is during a seminar",
+      "the weird passive-aggressive note left on the microwave",
+      "why their ML model thinks hydrogen is heavier than uranium",
+      "the ethics of using ChatGPT to write response to reviewers",
+      "whether 'd-band center' explains everything or nothing",
+      "the terror of presenting to Prof. Goldsmith without error bars",
+      "how many times they can email tech support before being blacklisted",
+      "the structural integrity of the sandwich they brought for lunch",
+      "why their python environment breaks every Tuesday",
+      "the unspoken hierarchy of window desk vs hallway desk",
+      "whether to drop 300 dollars on an ergonomic keyboard",
+      "the optimal strategy for getting free food at department events",
+      "why the cluster nodes always go down on a weekend",
+      "the mystery of the shared group drive permissions",
+      "how to tactfully dodge a question during a poster session",
+      "the aesthetic superiority of matplotlib's 'viridis' colormap",
+      "whether reading papers in bed counts as working",
+
+      // DFT / VASP / Computational Chemistry specifics
+      "the specific kind of pain that is an SCF non-convergence",
+      "whether ALGO=Fast is just asking for trouble",
+      "how to fix a geometry optimization that's oscillating forever",
+      "the fear of realizing ISPIN=2 was needed after a month of calculations",
+      "why the zero-point energy calculation took longer than the actual reaction",
+      "the betrayal of finding out the pseudopotential was wrong",
+      "how to justify a functional choice without sounding defensive",
+      "the sheer joy of seeing 'reached required accuracy' in an OUTCAR",
+      "whether to include dipole corrections and double the compute time",
+      "the art of guessing the initial magnetic moments",
+      "why the nudged elastic band (NEB) method is personally attacking them",
+      "the heartbreak of a transition state that has TWO imaginary frequencies",
+      "how to explain to the PI that the cluster ate their data",
+      "the superiority of VESTA for making pretty molecule pictures",
+      "why reading someone else's INCAR is like reading their diary",
+      "the temptation to just use a smaller supercell and hope nobody notices",
+      "whether to manually shift an atom by 0.1 Angstroms out of sheer desperation",
+      "the philosophical implications of a negative activation barrier",
+      "why the dielectric constant is suddenly ruining their lives",
+      "the optimal smearing method for a weird intermetallic surface",
+      "how to politely steal nodes on the cluster without getting caught",
+      "the terror of realizing they submitted 500 jobs with a typo in the script",
+      "why compiling VASP is a dark art lost to modern civilization",
+
+      // Machine Learning / AI / Data Science
+      "the pain of realizing the validation set leaked into the training set",
+      "whether Graph Neural Networks are magic or just linear algebra in disguise",
+      "how to politely say 'we just threw a Random Forest at it'",
+      "the heartbreak of an ML potential that explodes at 300K",
+      "why 'equivariance' is the current buzzword everyone pretends to understand",
+      "the sheer volume of RAM needed to train an attention model",
+      "how to interpret a t-SNE plot that just looks like a cloud",
+      "the anxiety of running out of GPU quota mid-epoch",
+      "whether active learning actually works or is just confirmation bias",
+      "the mystery of a loss curve that looks like a rollercoaster",
+      "how many epochs is too many epochs",
+      "the smugness of a perfectly calibrated uncertainty metric",
+      "why PyTorch error messages are written in ancient Greek",
+      "the temptation to tweak the random seed until it works",
+      "whether 'Foundation Models for Chemistry' are overhyped",
+      "the struggle of making an active learning loop actual loop",
+      "how to explain backpropagation to someone who hates calculus",
+      "the sheer terror of realizing they normalized the data wrong",
+      "why the model performs perfectly on the test set but fails in MD",
+
+      // Electrocatalysis / Chemical Engineering
+      "the mystery of why the Tafel slope is never 120, 60, or 40",
+      "whether the computational hydrogen electrode (CHE) model is a lie",
+      "how to explain a solvation energy of 5 eV",
+      "the anxiety of a Pourbaix diagram that predicts the catalyst dissolving",
+      "why the overpotential is always 0.8 V no matter what they do",
+      "the heartbreak of discovering an intermediate that ruins the whole mechanism",
+      "how to draw a free energy diagram that doesn't look like a mess",
+      "the theoretical justification for ignoring solvent effects",
+      "why the volcano plot is always peaked exactly where the experimentalists want it",
+      "the terror of calculating a microkinetic model that predicts zero current",
+      "whether adding explicit water molecules will save or destroy the project",
+      "how to tactfully tell an experimentalist their turnover frequency is impossible",
+
+      // Casual / Daily Life / Humor / UMich specific
+      "what they're binge-watching on Netflix lately",
+      "the best ramen spot near campus",
+      "whether pineapple belongs on pizza",
+      "their most embarrassing moment in a Zoom meeting",
+      "who would win in a fight: a grad student or 100 SCF cycles",
+      "the funniest email autocorrect fail they've seen",
+      "their hot take on the latest Marvel movie",
+      "whether AI will replace PhD students or just their sleep",
+      "the Ann Arbor parking situation being absolutely criminal",
+      "which lab member would survive a zombie apocalypse",
+      "their Spotify Wrapped being 90% lo-fi beats",
+      "whether Michigan football is actually good this year",
+      "the gym membership they've been paying for but never using",
+      "ranking the campus dining halls from edible to war crime",
+      "that one professor who still uses overhead transparencies",
+      "their dreams about being chased by error bars",
+      "whether cats or dogs make better lab mascots",
+      "the wildest thing they've seen on Ann Arbor Reddit",
+      "their Amazon cart full of things they'll never buy",
+      "who keeps stealing the good whiteboard markers",
+      "the latest ChatGPT drama on Twitter",
+      "planning a weekend trip but knowing they'll just code",
+      "their controversial take on coffee vs tea",
+      "the mystery person who microwaves fish in the break room",
+      "whether grad school has aged them 10 years in 2",
+      "their phone screen time report being embarrassingly high",
+      "the TikTok algorithm knowing them too well",
+      "their failed attempt at meal prepping last Sunday",
+      "whether they should get bangs (the answer is always no)",
+      "the latest drama on the department Slack channel",
+      "ranking the vibes of every building on North Campus",
+      "their hot take on the best study spot in Ann Arbor",
+      "the sheer panic of a fire alarm during a critical calculation",
+      "why the Blue Bus is always late when it's raining",
+      "the unspoken rivalry between Central and North Campus",
+      "how to survive a Michigan winter without losing a toe",
+      "the superiority of Zingerman's despite the prices",
+      "whether the squirrels on campus are secretly organizing",
+      "the best way to avoid eye contact in the chemchem hallway",
+
+      // Existential / Deep Thoughts
+      "whether they chose the right thesis topic or if it chose them",
+      "how to define 'progress' when all calculations fail",
+      "the fear that their whole PhD could be automated by a shell script",
+      "whether impact factors actually measure anything useful",
+      "the realization that they are the world expert on a very boring molecule",
+      "how to cope with the fact that chemistry is just applied physics",
+      "the sheer improbability of the universe existing, let alone converging",
+      "whether they should just quit and move to a farm",
+      "the beauty of a perfectly balanced chemical equation",
+      "how many more papers until they feel like a real scientist"
+    ];
+
+    const selfTalkLines = [
+      // Academic mumbles
+      "Why won't this converge...",
+      "ENCUT = 520... no, 600... no, 520 was fine...",
+      "Is that a bug or a feature?",
+      "One more run, then coffee.",
+      "Error bars... always error bars...",
+      "rm -rf... no, wait, NO.",
+      "This can't be right. Can it?",
+      "SCF cycle 847... still going...",
+      "Maybe if I restart the calculation...",
+      "That's a suspicious R² of 0.999...",
+      "K-points: 4x4x1... or 6x6x1... or...",
+      "grep: 'reached required accuracy'... nope.",
+      "Is the queue down again?",
+      "My OUTCAR is 2 GB. This is fine.",
+      "Note to self: label the axes BEFORE the meeting.",
+      // Daily life / humor
+      "I should really eat lunch...",
+      "I'll just check email... for 45 minutes...",
+      "Why does this only fail on Fridays?",
+      "Okay, what if I just... no.",
+      "Did I leave the stove on...?",
+      "I wonder what's for lunch at the dining hall...",
+      "My screen time last week was... concerning.",
+      "Is it Friday yet?",
+      "I miss sleeping 8 hours.",
+      "Just five more minutes of scrolling...",
+      "I should text my mom back...",
+      "That meme was too accurate...",
+      "Maybe I should learn to cook...",
+      "Why is parking $180 a month?!",
+      "I need a vacation. Or a nap. Or both.",
+      "My plant is judging me for never watering it.",
+      "Is it too early for a third coffee?",
+      "I've been wearing this hoodie for three days.",
+      "My Amazon package is 'arriving today' since Tuesday.",
+      "What was I about to Google?",
+      "I should probably do laundry... eventually.",
+      "Life was simpler before Slack notifications.",
+      "Why did I open the fridge? I'm not even hungry.",
+    ];
+
+    // Create a speech bubble for an NPC
+    function createSpeechBubble(npc, text, className) {
+      const cls = className || 'speech-bubble';
+      const div = document.createElement('div');
+      div.className = cls;
+      if (cls === 'speech-bubble') {
+        div.innerHTML = '<div class="sb-name">' + npc.userData.name + '</div><div class="sb-text">' + text.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>';
+      } else {
+        div.textContent = text;
+      }
+      document.body.appendChild(div);
+      return div;
+    }
+
+    // Update a speech bubble's screen position based on an NPC's 3D position
+    function updateBubblePosition(bubble, npc) {
+      if (!bubble || !npc) return;
+      const pos = npc.position.clone();
+      pos.y += 2.2;
+      pos.project(camera);
+      const x = (pos.x * 0.5 + 0.5) * innerWidth;
+      const y = (-pos.y * 0.5 + 0.5) * innerHeight;
+      bubble.style.left = x + 'px';
+      bubble.style.top = y + 'px';
+      // Hide if behind camera
+      if (pos.z > 1) { bubble.style.display = 'none'; } else { bubble.style.display = ''; }
+    }
+
+    // Remove a bubble with fade-out
+    function removeBubble(bubble) {
+      if (!bubble) return;
+      bubble.style.animation = 'bubbleOut 0.3s ease-in forwards';
+      setTimeout(() => bubble.remove(), 300);
+    }
+
+    // Find two nearby idle NPCs for a conversation
+    function findChatPair() {
+      const idle = chars.filter(ch => {
+        const ud = ch.userData;
+        return !ud.dancing && ch !== curChar && !ud.inConvo;
+      });
+      if (idle.length < 2) return null;
+
+      // Shuffle and pick the first pair within distance 10
+      const shuffled = [...idle].sort(() => Math.random() - 0.5);
+      for (let i = 0; i < shuffled.length; i++) {
+        for (let j = i + 1; j < shuffled.length; j++) {
+          const dist = shuffled[i].position.distanceTo(shuffled[j].position);
+          if (dist < 10) {
+            return [shuffled[i], shuffled[j]];
+          }
+        }
+      }
+      return null;
+    }
+
+    // Generate NPC-to-NPC conversation line via LLM
+    async function generateNpcLine(speaker, listener, topic, previousLine) {
+      let prompt;
+      if (!previousLine) {
+        prompt = 'You are ' + speaker.userData.name + ', a ' + speaker.userData.role + '. ' + speaker.userData.p + '. You just walked up to ' + listener.userData.name + ' and want to chat about ' + topic + '. Say ONE short casual sentence (under 20 words) to start the conversation. No quotes, no action descriptions, just the spoken words.';
+      } else {
+        prompt = 'You are ' + speaker.userData.name + ', a ' + speaker.userData.role + '. ' + speaker.userData.p + '. Your labmate ' + listener.userData.name + ' just said: "' + previousLine + '". Reply with ONE short casual sentence (under 20 words). Be witty and in-character. No quotes, no action descriptions, just the spoken words.';
+      }
+
+      try {
+        const stream = await callOllama(prompt);
+        const reader = stream.getReader();
+        const decoder = new TextDecoder('utf-8');
+        let reply = '';
+        let buffer = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+          const streamLines = buffer.split('\n');
+          buffer = streamLines.pop();
+          for (const line of streamLines) {
+            if (!line.trim()) continue;
+            try {
+              const parsed = JSON.parse(line);
+              if (parsed.message && parsed.message.content) {
+                reply += parsed.message.content;
+              }
+            } catch(e) {}
+          }
+        }
+        reply = reply.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+        // Clean up quotes if the model adds them
+        reply = reply.replace(/^["']|["']$/g, '').trim();
+        return reply || null;
+      } catch(e) {
+        console.error('NPC chat error:', e);
+        return null;
+      }
+    }
+
+    // Main NPC conversation tick — called every frame
+    async function tickNpcChat(dt) {
+      const st = npcChatState;
+
+      if (st.phase === 'idle') {
+        st.timer -= dt;
+        if (st.timer <= 0) {
+          const pair = findChatPair();
+          if (pair) {
+            st.pairA = pair[0];
+            st.pairB = pair[1];
+            st.pairA.userData.inConvo = true;
+            st.pairB.userData.inConvo = true;
+            st.pairA.userData.idleAnim = 'chatting';
+            st.pairB.userData.idleAnim = 'chatting';
+            st.phase = 'approaching';
+            st.turnIndex = 0;
+            st.maxTurns = 2 + Math.floor(Math.random() * 3); // 2-4 turns
+            st.topic = labTopics[Math.floor(Math.random() * labTopics.length)];
+            st.lastLine = '';
+          }
+          st.timer = 25 + Math.random() * 35;
+        }
+        return;
+      }
+
+      if (st.phase === 'approaching') {
+        // Move NPCs toward each other
+        const midpoint = st.pairA.position.clone().add(st.pairB.position).multiplyScalar(0.5);
+        const dirA = midpoint.clone().sub(st.pairA.position); dirA.y = 0;
+        const dirB = midpoint.clone().sub(st.pairB.position); dirB.y = 0;
+
+        const distA = dirA.length();
+        const distB = dirB.length();
+
+        if (distA > 1.5) {
+          dirA.normalize();
+          st.pairA.position.addScaledVector(dirA, 0.02);
+          st.pairA.lookAt(st.pairB.position);
+          st.pairA.rotation.x = 0; st.pairA.rotation.z = 0;
+        }
+        if (distB > 1.5) {
+          dirB.normalize();
+          st.pairB.position.addScaledVector(dirB, 0.02);
+          st.pairB.lookAt(st.pairA.position);
+          st.pairB.rotation.x = 0; st.pairB.rotation.z = 0;
+        }
+
+        if (distA <= 1.5 && distB <= 1.5) {
+          // Face each other
+          st.pairA.lookAt(st.pairB.position);
+          st.pairA.rotation.x = 0; st.pairA.rotation.z = 0;
+          st.pairB.lookAt(st.pairA.position);
+          st.pairB.rotation.x = 0; st.pairB.rotation.z = 0;
+          st.phase = 'talking';
+          // Start first turn
+          doNpcTurn();
+        }
+        return;
+      }
+
+      if (st.phase === 'cooldown') {
+        st.cooldown -= dt;
+        // Keep facing each other during cooldown
+        if (st.pairA && st.pairB) {
+          st.pairA.lookAt(st.pairB.position);
+          st.pairA.rotation.x = 0; st.pairA.rotation.z = 0;
+          st.pairB.lookAt(st.pairA.position);
+          st.pairB.rotation.x = 0; st.pairB.rotation.z = 0;
+        }
+        if (st.cooldown <= 0) {
+          endNpcConvo();
+        }
+      }
+    }
+
+    async function doNpcTurn() {
+      const st = npcChatState;
+      if (st.turnIndex >= st.maxTurns) {
+        // End conversation after a small pause
+        st.phase = 'cooldown';
+        st.cooldown = 3;
+        return;
+      }
+
+      const speaker = st.turnIndex % 2 === 0 ? st.pairA : st.pairB;
+      const listener = st.turnIndex % 2 === 0 ? st.pairB : st.pairA;
+
+      // Show typing indicator
+      const typingBubble = createSpeechBubble(speaker, '...', 'speech-bubble');
+      if (st.turnIndex % 2 === 0) {
+        removeBubble(st.bubbleA);
+        st.bubbleA = typingBubble;
+      } else {
+        removeBubble(st.bubbleB);
+        st.bubbleB = typingBubble;
+      }
+
+      const line = await generateNpcLine(speaker, listener, st.topic, st.lastLine);
+
+      if (line) {
+        // Replace typing bubble with actual line
+        removeBubble(typingBubble);
+        const bubble = createSpeechBubble(speaker, line, 'speech-bubble');
+        if (st.turnIndex % 2 === 0) {
+          st.bubbleA = bubble;
+        } else {
+          st.bubbleB = bubble;
+        }
+
+        st.lastLine = line;
+        st.turnIndex++;
+
+        // Emote occasionally
+        if (Math.random() < 0.3) {
+          floatTxt(['haha', '😂', '🤔', 'hmm', '!', '💡'][Math.floor(Math.random() * 6)], speaker.position);
+        }
+
+        // Wait before next turn
+        setTimeout(() => {
+          if (st.phase === 'talking') {
+            doNpcTurn();
+          }
+        }, 4000 + Math.random() * 3000);
+      } else {
+        // LLM failed, end convo gracefully
+        removeBubble(typingBubble);
+        st.phase = 'cooldown';
+        st.cooldown = 1;
+      }
+    }
+
+    function endNpcConvo() {
+      const st = npcChatState;
+      removeBubble(st.bubbleA);
+      removeBubble(st.bubbleB);
+      st.bubbleA = null;
+      st.bubbleB = null;
+      if (st.pairA) {
+        st.pairA.userData.inConvo = false;
+        st.pairA.userData.idleAnim = 'walk';
+        st.pairA.userData.idleTimer = 0;
+      }
+      if (st.pairB) {
+        st.pairB.userData.inConvo = false;
+        st.pairB.userData.idleAnim = 'walk';
+        st.pairB.userData.idleTimer = 0;
+      }
+      // Random chance of post-convo emote
+      if (Math.random() < 0.4 && st.pairA) {
+        floatTxt(['good chat!', '📝', 'noted.', 'huh.', 'interesting...'][Math.floor(Math.random() * 5)], st.pairA.position);
+      }
+      st.pairA = null;
+      st.pairB = null;
+      st.phase = 'idle';
+      st.timer = 25 + Math.random() * 35;
+    }
+
+    // ── Enhanced Random Behaviors ─────────────────────────────────────────────
+
+    // Self-talk: random mumble bubbles
+    let selfTalkTimer = 8 + Math.random() * 15;
+    const activeMumbles = [];
+
+    function tickSelfTalk(dt) {
+      selfTalkTimer -= dt;
+      if (selfTalkTimer <= 0) {
+        selfTalkTimer = 12 + Math.random() * 20;
+        // Pick a random idle NPC
+        const idle = chars.filter(ch => !ch.userData.dancing && ch !== curChar && !ch.userData.inConvo);
+        if (idle.length === 0) return;
+        const npc = idle[Math.floor(Math.random() * idle.length)];
+        const line = selfTalkLines[Math.floor(Math.random() * selfTalkLines.length)];
+        const bubble = createSpeechBubble(npc, line, 'mumble-bubble');
+        activeMumbles.push({ bubble, npc, life: 4 });
+      }
+
+      // Update and cleanup mumbles
+      for (let i = activeMumbles.length - 1; i >= 0; i--) {
+        const m = activeMumbles[i];
+        m.life -= dt;
+        updateBubblePosition(m.bubble, m.npc);
+        if (m.life <= 0) {
+          removeBubble(m.bubble);
+          activeMumbles.splice(i, 1);
+        }
+      }
+    }
+
+    // Eureka moments
+    let eurekaTimer = 30 + Math.random() * 60;
+    function tickEureka(dt) {
+      eurekaTimer -= dt;
+      if (eurekaTimer <= 0) {
+        eurekaTimer = 40 + Math.random() * 80;
+        const idle = chars.filter(ch => !ch.userData.dancing && ch !== curChar && !ch.userData.inConvo);
+        if (idle.length === 0) return;
+        const npc = idle[Math.floor(Math.random() * idle.length)];
+        // Eureka animation
+        npc.userData.eurekaTime = 2.5;
+        const exclamations = ['CONVERGED!', 'IT WORKS!', 'R² = 0.99!', 'p < 0.001!', 'EUREKA!', 'SCF DONE!', 'FINALLY!'];
+        floatTxt(exclamations[Math.floor(Math.random() * exclamations.length)], npc.position);
+        floatTxt('🎉', npc.position);
+      }
+    }
+
+    // Frustration moments
+    let frustTimer = 20 + Math.random() * 40;
+    function tickFrustration(dt) {
+      frustTimer -= dt;
+      if (frustTimer <= 0) {
+        frustTimer = 25 + Math.random() * 50;
+        const idle = chars.filter(ch => !ch.userData.dancing && ch !== curChar && !ch.userData.inConvo);
+        if (idle.length === 0) return;
+        const npc = idle[Math.floor(Math.random() * idle.length)];
+        npc.userData.frustTime = 2.0;
+        const frustWords = ['SEGFAULT!', '#@$%!', 'NOT AGAIN', 'WHY?!', 'OOM!', 'nan nan nan'];
+        floatTxt(frustWords[Math.floor(Math.random() * frustWords.length)], npc.position);
+      }
+    }
+
+    animate(0);
+    window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); });
+  </script>
+</body>
+
+</html>
