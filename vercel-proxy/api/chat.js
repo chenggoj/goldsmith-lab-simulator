@@ -32,7 +32,7 @@ export default async function handler(request) {
       'HTTP-Referer': 'https://chenggoj.github.io',
       'X-Title': 'Goldsmith Lab Simulator',
     },
-    body: JSON.stringify({ ...body, model: 'openrouter/auto' }),
+    body: JSON.stringify({ ...body, model: 'openrouter/free' }),
   });
 
   return new Response(upstream.body, {
